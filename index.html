@@ -1,2 +1,133 @@
-<h2>Hello Welcome</h2>
-<p>Goodbye</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hello World</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #1e1e2f, #3a2a5d, #1e1e2f);
+    background-size: 400% 400%;
+    animation: gradientShift 12s ease infinite;
+    overflow: hidden;
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .card {
+    text-align: center;
+    padding: 60px 80px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  h1 {
+    font-size: 3rem;
+    color: #fff;
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.3s ease;
+  }
+
+  p#subtitle {
+    margin-top: 15px;
+    color: #ccc;
+    font-size: 1.1rem;
+  }
+
+  button {
+    margin-top: 30px;
+    padding: 12px 28px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 30px;
+    background: #ff5e5e;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+  }
+
+  button:hover {
+    background: #ff8080;
+    transform: scale(1.05);
+  }
+
+  #clickCount {
+    margin-top: 15px;
+    color: #aaa;
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+  <div class="card" id="card">
+    <h1 id="title">Hello, World!</h1>
+    <p id="subtitle">Move your mouse over me, then click the button below.</p>
+    <button id="greetBtn">Say Hi 👋</button>
+    <p id="clickCount">Clicks: 0</p>
+  </div>
+
+<script>
+  const title = document.getElementById('title');
+  const card = document.getElementById('card');
+  const subtitle = document.getElementById('subtitle');
+  const btn = document.getElementById('greetBtn');
+  const clickCount = document.getElementById('clickCount');
+
+  const colors = ['#ff5e5e', '#5ecbff', '#5eff8f', '#ffe15e', '#c95eff'];
+
+  // Hover effect on title: random color + grow
+  title.addEventListener('mouseover', () => {
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    title.style.color = randomColor;
+    title.style.transform = 'scale(1.1)';
+  });
+
+  title.addEventListener('mouseout', () => {
+    title.style.color = '#fff';
+    title.style.transform = 'scale(1)';
+  });
+
+  // Card follows mouse slightly (parallax tilt effect)
+  document.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 20;
+    const y = (e.clientY / window.innerHeight - 0.5) * 20;
+    card.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+  });
+
+  document.addEventListener('mouseleave', () => {
+    card.style.transform = 'rotateY(0deg) rotateX(0deg)';
+  });
+
+  // Button click: change subtitle and count clicks
+  let count = 0;
+  const messages = [
+    "Hi there! 😊",
+    "Great to see you!",
+    "You clicked again? Awesome!",
+    "Keep going, I like it!",
+    "You're on a roll! 🚀"
+  ];
+
+  btn.addEventListener('click', () => {
+    count++;
+    clickCount.textContent = `Clicks: ${count}`;
+    subtitle.textContent = messages[Math.floor(Math.random() * messages.length)];
+  });
+</script>
+
+</body>
+</html>
