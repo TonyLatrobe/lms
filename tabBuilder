@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tab Builder</title>
+<style>
+  :root {
+    --border: #cfcfcf;
+    --border-dark: #aaa;
+    --bg: #f6f6f6;
+    --panel: #fff;
+    --text: #222;
+    --muted: #666;
+    --accent: #e8e8e8;
+    --danger: #b42318;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 24px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text);
+    background: #fff;
+    line-height: 1.5;
+  }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  h1, h2, h3 { margin-top: 0; }
+
+  .intro {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: var(--panel);
+  }
+
+  .intro h1 { margin-bottom: 8px; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .builder {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    background: var(--panel);
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  button {
+    border: 1px solid var(--border-dark);
+    border-radius: 6px;
+    background: #f1f1f1;
+    color: var(--text);
+    padding: 9px 14px;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  button:hover { background: #e5e5e5; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .primary { font-weight: 700; }
+  .danger { color: var(--danger); }
+
+  .tab-card {
+    border: 1px solid var(--border-dark);
+    border-radius: 7px;
+    padding: 16px;
+    margin-bottom: 14px;
+    background: #fafafa;
+  }
+
+  .tab-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .tab-card-title {
+    font-weight: 700;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+
+  input[type="text"], textarea {
+    width: 100%;
+    border: 1px solid var(--border-dark);
+    border-radius: 5px;
+    padding: 9px 10px;
+    font: inherit;
+    background: #fff;
+  }
+
+  textarea {
+    min-height: 150px;
+    resize: vertical;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  .field { margin-bottom: 12px; }
+
+  .hint {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 5px;
+  }
+
+  .output-wrap { margin-top: 22px; }
+
+  #output {
+    width: 100%;
+    min-height: 320px;
+    white-space: pre;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 14px;
+    background: #f8f8f8;
+    font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  .status {
+    min-height: 1.5em;
+    color: var(--muted);
+    margin: 10px 0 0;
+  }
+
+  details { margin-top: 20px; }
+  summary { cursor: pointer; font-weight: 700; }
+
+  @media (max-width: 700px) {
+    body { padding: 12px; }
+    .builder, .intro { padding: 14px; }
+    .tab-card-header { align-items: flex-start; flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <section class="intro">
+    <h1>Tab Builder</h1>
+    <p>This simple tool helps you create custom tabs for your HTML pages — no coding experience needed.</p>
+    <p>A tab is a section of content that you can switch between. Add as many tabs as you need, give each tab a title and content, then compile the finished HTML for use in an LMS Text and Media Area or another HTML page.</p>
+    <details>
+      <summary>How to use this in your LMS shell</summary>
+      <ol>
+        <li>Watch the video, if one is provided for your course.</li>
+        <li>Turn on <strong>Edit Mode</strong> in your LMS shell.</li>
+        <li>Use this Tab Builder to create your tabs.</li>
+        <li>Click <strong>Compile Tabs</strong>, then <strong>Copy to Clipboard</strong>.</li>
+        <li>In your LMS, create a <strong>Text and Media Area</strong>.</li>
+        <li>Open the <strong>Source Code (&lt;/&gt;)</strong> editor, paste all compiled code, and save.</li>
+      </ol>
+      <p><strong>Note:</strong> For coding subjects, you may want to use a syntax-highlighting service such as hilite.me for code examples.</p>
+    </details>
+  </section>
+
+  <section class="builder">
+    <h2>Build Your Tabs</h2>
+    <div class="toolbar">
+      <button id="addTabBtn" type="button">+ Add Tab</button>
+      <button id="compileBtn" type="button" class="primary">Compile Tabs</button>
+      <button id="copyBtn" type="button" disabled>Copy to Clipboard</button>
+      <button id="clearBtn" type="button">Clear All</button>
+      <button id="exampleBtn" type="button">Load Example</button>
+    </div>
+
+    <div id="tabsContainer" aria-live="polite"></div>
+    <p class="status" id="status" role="status"></p>
+
+    <div class="output-wrap">
+      <h2>Compiled HTML</h2>
+      <textarea id="output" aria-label="Compiled HTML" readonly placeholder="Your compiled HTML will appear here."></textarea>
+      <p class="hint">The generated block uses inline styles, a unique container ID, and no external JavaScript or CSS libraries.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const container = document.getElementById("tabsContainer");
+  const output = document.getElementById("output");
+  const copyBtn = document.getElementById("copyBtn");
+  const status = document.getElementById("status");
+  let tabCounter = 0;
+
+  function setStatus(message) {
+    status.textContent = message || "";
+  }
+
+  function addTabInput(name = "", content = "", type = "plain") {
+    const container = document.getElementById("tabsContainer");
+    const card = document.createElement("div");
+    card.className = "tab-card";
+
+    const header = document.createElement("div");
+    header.className = "tab-card-header";
+
+    const title = document.createElement("div");
+    title.className = "tab-card-title";
+    title.textContent = "Tab " + (container.querySelectorAll(".tab-card").length + 1);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "danger";
+    removeBtn.textContent = "Remove";
+    removeBtn.addEventListener("click", function () {
+      card.remove();
+      renumberCards();
+      setStatus("Tab removed.");
+    });
+
+    header.appendChild(title);
+    header.appendChild(removeBtn);
+
+    const nameField = document.createElement("div");
+    nameField.className = "field";
+    const nameLabel = document.createElement("label");
+    nameLabel.textContent = "Tab Name";
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.placeholder = "e.g. 1. Basic Example";
+    nameInput.value = name;
+    nameField.appendChild(nameLabel);
+    nameField.appendChild(nameInput);
+
+    const typeField = document.createElement("div");
+    typeField.className = "field";
+    const typeLabel = document.createElement("label");
+    typeLabel.textContent = "Content Type";
+    const typeSelect = document.createElement("select");
+    typeSelect.innerHTML = `
+      <option value="plain">Plain Text</option>
+      <option value="html">HTML / hilite.me</option>
+    `;
+    typeSelect.value = type === "html" ? "html" : "plain";
+    typeField.appendChild(typeLabel);
+    typeField.appendChild(typeSelect);
+
+    const contentField = document.createElement("div");
+    contentField.className = "field";
+    const contentLabel = document.createElement("label");
+    contentLabel.textContent = "Tab Content";
+    const contentArea = document.createElement("textarea");
+    contentArea.placeholder = "Enter the content to display in this tab...";
+    contentArea.value = content;
+    contentField.appendChild(contentLabel);
+    contentField.appendChild(contentArea);
+
+    const hint = document.createElement("div");
+    hint.className = "hint";
+    function updateHint() {
+      if (typeSelect.value === "html") {
+        hint.textContent = "HTML mode: paste the HTML produced by hilite.me here. It will be rendered inside the tab.";
+        contentArea.placeholder = "Paste hilite.me HTML here...";
+      } else {
+        hint.textContent = "Plain Text mode: HTML tags are shown as text rather than executed.";
+        contentArea.placeholder = "Enter text or code here...";
+      }
+    }
+    typeSelect.addEventListener("change", updateHint);
+    updateHint();
+
+    card.appendChild(header);
+    card.appendChild(nameField);
+    card.appendChild(typeField);
+    card.appendChild(contentField);
+    card.appendChild(hint);
+    container.appendChild(card);
+  }
+
+  function renumberCards() {
+    Array.from(container.querySelectorAll(".tab-card")).forEach(function (card, index) {
+      card.dataset.tabNumber = String(index + 1);
+      const title = card.querySelector(".tab-card-title");
+      if (title) title.textContent = "Tab " + (index + 1);
+    });
+  }
+
+  function getTabs() {
+    return Array.from(container.querySelectorAll(".tab-card")).map(function (card, index) {
+      const input = card.querySelector("input");
+      const select = card.querySelector("select");
+      const textarea = card.querySelector("textarea");
+      return {
+        tabId: index + 1,
+        tabName: (input.value || "").trim() || "Tab " + (index + 1),
+        tabType: select ? select.value : "plain",
+        tabBody: textarea.value || ""
+      };
+    });
+  }
+
+  function escapeForScriptJson(value) {
+    return JSON.stringify(value)
+      .replace(/</g, "\\u003c")
+      .replace(/>/g, "\\u003e")
+      .replace(/&/g, "\\u0026")
+      .replace(/\u2028/g, "\\u2028")
+      .replace(/\u2029/g, "\\u2029");
+  }
+
+  function generateTabHTML(tabs) {
+    const uniqueId = "tabset-" + Math.random().toString(36).slice(2, 10);
+    const navId = "tabsNav-" + uniqueId;
+    const bodyId = "tabBody-" + uniqueId;
+    const tabsJson = escapeForScriptJson(tabs);
+
+    return (`<div id="${uniqueId}"
+  style="font-family: monospace; width: 100%; border: 1px solid #ccc; border-radius: 6px; background: #fff;">
+  <div id="${navId}"
+    style="display: flex; flex-wrap: wrap; background: #f1f1f1; border-bottom: 1px solid #ccc; padding: 0 8px;">
+  </div>
+  <div>
+    <div id="${bodyId}"
+      style="padding: 16px; font-size: 16px; background: #fff;"></div>
+  </div>
+</div>
+<script>
+(function() {
+  "use strict";
+  const tabs = ${tabsJson};
+  const nav = document.getElementById("${navId}");
+  const body = document.getElementById("${bodyId}");
+
+  function renderTabs() {
+    nav.innerHTML = "";
+    tabs.forEach(function(tab) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = tab.tabName;
+      btn.style.cssText =
+        "padding:10px 16px; background:#eee; border:1px solid #ccc; border-bottom:none; cursor:pointer; font-weight:bold; font-family:monospace;";
+      btn.addEventListener("click", function() {
+        setActiveTab(tab.tabId, btn);
+      });
+      nav.appendChild(btn);
+    });
+  }
+
+  function setActiveTab(id, activeBtn) {
+    const tab = tabs.find(function(item) { return item.tabId === id; });
+    if (!tab) return;
+
+    body.innerHTML = "";
+    Array.from(nav.children).forEach(function(btn) {
+      btn.style.background = "#eee";
+      btn.setAttribute("aria-selected", "false");
+    });
+
+    activeBtn.style.background = "#ddd";
+    activeBtn.setAttribute("aria-selected", "true");
+
+    const contentContainer = document.createElement("div");
+    contentContainer.style.fontSize = "16px";
+
+    if (tab.tabType === "html") {
+      contentContainer.innerHTML = tab.tabBody;
+    } else {
+      contentContainer.style.fontFamily = "monospace";
+      contentContainer.style.whiteSpace = "pre-wrap";
+      contentContainer.textContent = tab.tabBody;
+    }
+
+    body.appendChild(contentContainer);
+  }
+
+  renderTabs();
+  if (tabs.length && nav.children.length) {
+    setActiveTab(tabs[0].tabId, nav.children[0]);
+  }
+})();
+<\/script>`).trim();
+  }
+
+  function compile() {
+    const tabs = getTabs();
+    if (!tabs.length) {
+      output.value = "";
+      copyBtn.disabled = true;
+      setStatus("Add at least one tab before compiling.");
+      return;
+    }
+
+    output.value = generateTabHTML(tabs);
+    copyBtn.disabled = false;
+    setStatus(tabs.length + " tab" + (tabs.length === 1 ? "" : "s") + " compiled successfully.");
+  }
+
+  async function copyOutput() {
+    if (!output.value) return;
+
+    try {
+      await navigator.clipboard.writeText(output.value);
+      setStatus("Compiled HTML copied to the clipboard.");
+    } catch (error) {
+      output.focus();
+      output.select();
+      const copied = document.execCommand("copy");
+      setStatus(copied ? "Compiled HTML copied to the clipboard." : "Copy was blocked. Select the output and copy it manually.");
+    }
+  }
+
+  function clearAll() {
+    container.innerHTML = "";
+    output.value = "";
+    copyBtn.disabled = true;
+    setStatus("");
+  }
+
+  function loadExample() {
+    clearAll();
+    addTabInput("1. Basic Example", `You can make a tab on whatever you want!
+List ingredients or materials, for example:
+1. Paper
+2. Funnel
+3. Test Tube`, "plain");
+
+    const hiliteExample = `<div style="background:#ffffff;overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin:0;line-height:125%"><span style="color:#008000;font-weight:bold">def</span> say_hello(name: str, excited: bool = False) -&gt; str:
+    greeting = <span style="color:#BA2121">f"Hello {name}"</span>
+    <span style="color:#008000;font-weight:bold">return</span> greeting + <span style="color:#BA2121">"!"</span> <span style="color:#008000;font-weight:bold">if</span> excited <span style="color:#008000;font-weight:bold">else</span> greeting
+
+<span style="color:#008000;font-weight:bold">if</span> __name__ == <span style="color:#BA2121">"__main__"</span>:
+    print(say_hello(<span style="color:#BA2121">"Alice"</span>, excited=<span style="color:#0000FF">True</span>))</pre></div>`;
+    addTabInput("2. Python with hilite.me", hiliteExample, "html");
+    addTabInput("3. Python without Hilite.me", `def say_hello(name: str, excited: bool = False) -> str:
+    greeting = f"Hello {name}"
+    return greeting + "!" if excited else greeting
+
+if __name__ == "__main__":
+    print(say_hello("Alice", excited=True))`, "plain");
+    addTabInput("4. Industry Standard", "Many sites use tabs because they are easy to read and navigate.\\n\\nNote: once the tabs are embedded in an LMS page, edit the source content here and compile again when changes are needed.");
+    renumberCards();
+    setStatus("Example tabs loaded.");
+  }
+
+  document.getElementById("addTabBtn").addEventListener("click", function () {
+    addTabInput();
+    renumberCards();
+    setStatus("New tab added.");
+  });
+
+  document.getElementById("compileBtn").addEventListener("click", compile);
+  copyBtn.addEventListener("click", copyOutput);
+  document.getElementById("clearBtn").addEventListener("click", clearAll);
+  document.getElementById("exampleBtn").addEventListener("click", loadExample);
+
+  addTabInput();
+})();
+</script>
+</body>
+</html>
