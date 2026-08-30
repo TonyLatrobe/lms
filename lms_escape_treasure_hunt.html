@@ -2079,6 +2079,47 @@ Produce only the questions and answers.</pre>
                   'Clipboard API not available. Please copy the code manually.'
                   );
               }
+
+              // Also wrap the snippet in a full standalone HTML document
+              // and trigger a download, so the game can be opened directly
+              // in a browser or shared as its own file (in addition to the
+              // LMS-paste snippet already copied to the clipboard above).
+              var gameLabel = isEscapeRoom ? 'Escape Room' : 'Treasure Hunt';
+              var fileName = isEscapeRoom ? 'escape-room.html' :
+                'treasure-hunt.html';
+              var standaloneHtml = '<!DOCTYPE html>\n' +
+                '<html lang="en">\n' +
+                '<head>\n' +
+                '<meta charset="UTF-8">\n' +
+                '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+                '<title>' + gameLabel + '</title>\n' +
+                '<style>\n' +
+                '  body { background:#111; color:#eee; font-family: Arial, Helvetica, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }\n' +
+                '</style>\n' +
+                '</head>\n' +
+                '<body>\n' +
+                generatedCode + '\n' +
+                '</body>\n' +
+                '</html>';
+
+              try {
+                var blob = new Blob([standaloneHtml], {
+                  type: 'text/html;charset=utf-8'
+                });
+                var url = URL.createObjectURL(blob);
+
+                var downloadAnchor = document.createElement('a');
+                downloadAnchor.href = url;
+                downloadAnchor.download = fileName;
+
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+
+                document.body.removeChild(downloadAnchor);
+                URL.revokeObjectURL(url);
+              } catch (downloadErr) {
+                console.error('Failed to download game file:', downloadErr);
+              }
             } catch (err) {
               console.error('Error generating game code:', err);
               alert(
