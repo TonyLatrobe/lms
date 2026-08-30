@@ -1,133 +1,366 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Hello World</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LMS Tools</title>
+  <meta name="description" content="A collection of standalone HTML tools and interactive learning activities for LMS environments.">
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --text: #172033;
+      --muted: #5d687a;
+      --border: #dce2ea;
+      --accent: #2b5cff;
+      --accent-dark: #1f46cf;
+      --soft: #eef3ff;
+      --success-soft: #eefaf3;
+      --shadow: 0 8px 28px rgba(23, 32, 51, 0.08);
+      --radius: 14px;
+    }
 
-  body {
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: linear-gradient(135deg, #1e1e2f, #3a2a5d, #1e1e2f);
-    background-size: 400% 400%;
-    animation: gradientShift 12s ease infinite;
-    overflow: hidden;
-  }
+    * { box-sizing: border-box; }
 
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
+    html { scroll-behavior: smooth; }
 
-  .card {
-    text-align: center;
-    padding: 60px 80px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg);
+    }
 
-  h1 {
-    font-size: 3rem;
-    color: #fff;
-    cursor: pointer;
-    transition: color 0.3s ease, transform 0.3s ease;
-  }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
 
-  p#subtitle {
-    margin-top: 15px;
-    color: #ccc;
-    font-size: 1.1rem;
-  }
+    a:hover,
+    a:focus {
+      color: var(--accent-dark);
+      text-decoration: underline;
+    }
 
-  button {
-    margin-top: 30px;
-    padding: 12px 28px;
-    font-size: 1rem;
-    border: none;
-    border-radius: 30px;
-    background: #ff5e5e;
-    color: white;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
-  }
+    .container {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
 
-  button:hover {
-    background: #ff8080;
-    transform: scale(1.05);
-  }
+    header {
+      background: linear-gradient(135deg, #18233d 0%, #263b72 55%, #2b5cff 100%);
+      color: #fff;
+      padding: 64px 0 58px;
+    }
 
-  #clickCount {
-    margin-top: 15px;
-    color: #aaa;
-    font-size: 0.9rem;
-  }
-</style>
+    .header-inner {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.82;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2.2rem, 5vw, 4rem);
+      line-height: 1.05;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin: 0;
+      font-size: 1.15rem;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .hero-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .hero-link {
+      display: inline-block;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.24);
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .hero-link:hover,
+    .hero-link:focus {
+      background: rgba(255,255,255,0.22);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .hero-mark {
+      width: 92px;
+      height: 92px;
+      display: grid;
+      place-items: center;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      font-size: 3rem;
+    }
+
+    main { padding: 48px 0 64px; }
+
+    section { margin-bottom: 52px; }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 1.75rem;
+    }
+
+    .section-intro {
+      margin: 0 0 24px;
+      max-width: 820px;
+      color: var(--muted);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 1.25rem;
+    }
+
+    .file {
+      display: inline-block;
+      margin-bottom: 14px;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 0.92rem;
+      color: var(--accent);
+      overflow-wrap: anywhere;
+    }
+
+    .card p {
+      margin: 0 0 14px;
+      color: var(--muted);
+    }
+
+    .card ul,
+    .steps {
+      margin: 0;
+      padding-left: 1.25rem;
+      color: var(--muted);
+    }
+
+    .card ul li,
+    .steps li {
+      margin-bottom: 7px;
+    }
+
+    .card-footer {
+      margin-top: auto;
+      padding-top: 18px;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 10px 15px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 9px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .button:hover,
+    .button:focus {
+      background: var(--accent-dark);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .note {
+      padding: 20px 22px;
+      background: var(--soft);
+      border: 1px solid #cfd9ff;
+      border-radius: var(--radius);
+    }
+
+    .note strong { color: var(--text); }
+
+    .asset-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .asset {
+      display: block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 15px;
+      font-family: Consolas, Monaco, monospace;
+      overflow-wrap: anywhere;
+    }
+
+    .principles {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .principle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .principle strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .principle span { color: var(--muted); }
+
+    footer {
+      padding: 28px 0 40px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+
+    @media (max-width: 800px) {
+      .header-inner,
+      .cards,
+      .principles {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-mark { display: none; }
+
+      .asset-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 500px) {
+      .container { width: min(100% - 22px, 1120px); }
+      header { padding: 44px 0; }
+      main { padding-top: 34px; }
+      .asset-grid { grid-template-columns: 1fr; }
+    }
+  
+    .tool-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1rem; margin:1.25rem 0 2.5rem; }
+    .tool-card { border:1px solid #d8dee8; border-radius:12px; padding:1.25rem; background:#fff; }
+    .tool-card h3 { margin-top:0; }
+    .tool-card a { font-weight:700; }
+
+  </style>
 </head>
 <body>
+  <header>
+    <div class="container header-inner">
+      <div>
+        <p class="eyebrow">Teaching &amp; Learning Tools</p>
+        <h1>LMS Tools</h1>
+        <p class="lead">
+          A collection of standalone HTML tools and interactive learning activities designed
+          to support teaching and learning in LMS environments.
+        </p>
+        <div class="hero-links">
+          <a class="hero-link" href="https://tonylatrobe.github.io/lms/index.html" target="_blank" rel="noopener">Open Website</a>
+          <a class="hero-link" href="https://github.com/TonyLatrobe/lms" target="_blank" rel="noopener">View on GitHub</a>
+        </div>
+      </div>
+      <div class="hero-mark" aria-hidden="true">🎓</div>
+    </div>
+  </header>
 
-  <div class="card" id="card">
-    <h1 id="title">Hello, World!</h1>
-    <p id="subtitle">Move your mouse over me, then click the button below.</p>
-    <button id="greetBtn">Say Hi 👋</button>
-    <p id="clickCount">Clicks: 0</p>
-  </div>
+  <main>
+    <div class="container">
 
-<script>
-  const title = document.getElementById('title');
-  const card = document.getElementById('card');
-  const subtitle = document.getElementById('subtitle');
-  const btn = document.getElementById('greetBtn');
-  const clickCount = document.getElementById('clickCount');
 
-  const colors = ['#ff5e5e', '#5ecbff', '#5eff8f', '#ffe15e', '#c95eff'];
+      <section aria-labelledby="tools-heading">
+        <h2 id="tools-heading">Tools</h2>
+        <p class="section-intro">Standalone tools and interactive activities for building and enhancing LMS content.</p>
+        <div class="tool-grid">
+          <article class="tool-card"><h3>📅 Weekly Schedule Builder</h3><p>Create module schedules from a start week, number of modules, optional mid-semester break, and pasted weekly schedule.</p><a href="WeeklyScheduleBuilder.html">Open Weekly Schedule Builder →</a></article>
+          <article class="tool-card"><h3>🗂️ Tab Builder</h3><p>Create LMS-ready tabbed interfaces with plain text or HTML content, including syntax-highlighted HTML from hilite.me.</p><a href="tabBuilder">Open Tab Builder →</a></article>
+          <article class="tool-card"><h3>🔐 Escape Room</h3><p>An interactive escape-room style learning activity designed for LMS use.</p><a href="escape.html">Open Escape Room →</a></article>
+          <article class="tool-card"><h3>🗺️ LMS Escape Treasure Hunt</h3><p>An interactive treasure-hunt learning activity for LMS-based teaching and learning.</p><a href="lms_escape_treasure_hunt.html">Open Treasure Hunt →</a></article>
+          <article class="tool-card"><h3>✅ Task Manager Simulator</h3><p>An interactive task-management simulation with functionality for playing, saving, and sharing the activity.</p><a href="tasksimulator.html">Open Task Manager Simulator →</a></article>
+        </div>
+      </section>
 
-  // Hover effect on title: random color + grow
-  title.addEventListener('mouseover', () => {
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    title.style.color = randomColor;
-    title.style.transform = 'scale(1.1)';
-  });
+      <section aria-labelledby="principles-heading">
+        <h2 id="principles-heading">Design Philosophy</h2>
+        <div class="principles">
+          <div class="principle">
+            <strong>Standalone</strong>
+            <span>Each tool should work as a single HTML page wherever possible.</span>
+          </div>
+          <div class="principle">
+            <strong>Lightweight</strong>
+            <span>Avoid unnecessary frameworks and external dependencies.</span>
+          </div>
+          <div class="principle">
+            <strong>Copy and paste friendly</strong>
+            <span>Generated HTML should be straightforward to move into an LMS.</span>
+          </div>
+          <div class="principle">
+            <strong>Teacher friendly</strong>
+            <span>Make common LMS content tasks easier without requiring extensive coding knowledge.</span>
+          </div>
+          <div class="principle">
+            <strong>Reusable</strong>
+            <span>Generated components should be usable independently of the builder that created them.</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
 
-  title.addEventListener('mouseout', () => {
-    title.style.color = '#fff';
-    title.style.transform = 'scale(1)';
-  });
-
-  // Card follows mouse slightly (parallax tilt effect)
-  document.addEventListener('mousemove', (e) => {
-    const x = (e.clientX / window.innerWidth - 0.5) * 20;
-    const y = (e.clientY / window.innerHeight - 0.5) * 20;
-    card.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
-  });
-
-  document.addEventListener('mouseleave', () => {
-    card.style.transform = 'rotateY(0deg) rotateX(0deg)';
-  });
-
-  // Button click: change subtitle and count clicks
-  let count = 0;
-  const messages = [
-    "Hi there! 😊",
-    "Great to see you!",
-    "You clicked again? Awesome!",
-    "Keep going, I like it!",
-    "You're on a roll! 🚀"
-  ];
-
-  btn.addEventListener('click', () => {
-    count++;
-    clickCount.textContent = `Clicks: ${count}`;
-    subtitle.textContent = messages[Math.floor(Math.random() * messages.length)];
-  });
-</script>
-
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="https://github.com/TonyLatrobe/lms" target="_blank" rel="noopener">GitHub Repository</a>
+        <a href="https://tonylatrobe.github.io/lms/index.html" target="_blank" rel="noopener">GitHub Pages</a>
+      </div>
+      <p>&copy; LMS Tools. Built as a collection of lightweight, reusable HTML resources.</p>
+    </div>
+  </footer>
 </body>
 </html>
