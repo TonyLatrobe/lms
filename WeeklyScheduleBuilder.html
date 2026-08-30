@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Subject Schedule Builder</title>
+  <style>
+    :root {
+      --border: #d7dce2;
+      --muted: #5e6875;
+      --surface: #ffffff;
+      --surface-2: #f5f7f9;
+      --text: #1f2933;
+      --accent: #5b2c83;
+      --accent-2: #7b45aa;
+      --break: #f7f7c6;
+      --danger: #b42318;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: #eef1f4;
+      line-height: 1.45;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 18px 48px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(0,0,0,.05);
+    }
+
+    .controls { padding: 22px; }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.55rem;
+      letter-spacing: -.01em;
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: 650;
+      margin-bottom: 6px;
+    }
+
+    input, textarea, button {
+      font: inherit;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid #bcc5cf;
+      border-radius: 8px;
+      padding: 10px 11px;
+      background: #fff;
+      color: inherit;
+    }
+
+    input:focus, textarea:focus {
+      outline: 2px solid rgba(91,44,131,.2);
+      border-color: var(--accent);
+    }
+
+    textarea {
+      min-height: 220px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .88rem;
+      line-height: 1.5;
+    }
+
+    .hint {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 14px;
+    }
+
+    button {
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 9px 14px;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 650;
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--accent);
+    }
+
+    button:hover { background: var(--accent-2); }
+    button.secondary:hover { background: #f4eef8; }
+
+    .status {
+      min-height: 1.4em;
+      margin-top: 11px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .status.error { color: var(--danger); }
+
+    .preview { margin-top: 18px; overflow: hidden; }
+
+    .preview-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .subject-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .calendar-icon {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 1.35rem;
+      background: var(--surface-2);
+    }
+
+    .preview-body { padding: 18px 20px 22px; }
+
+    .summary {
+      margin: 0 0 18px;
+    }
+
+    .summary-line { margin: 3px 0; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+    }
+
+    th, td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th:last-child, td:last-child { border-right: 0; }
+    tr:last-child td { border-bottom: 0; }
+
+    th {
+      background: var(--surface-2);
+      font-weight: 700;
+    }
+
+    .break-row td { background: var(--break); }
+
+    .empty-note {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: .83rem;
+      margin-top: 12px;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: .83rem;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      .page { padding: 14px 10px 36px; }
+      .controls, .preview-body { padding: 16px; }
+      .preview-head { padding: 16px 16px 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="panel controls" aria-labelledby="page-title">
+      <h1 id="page-title">Subject Schedule Builder</h1>
+      <p class="subtitle">Enter the semester dates and paste your weekly schedule. The date column is generated automatically.</p>
+
+      <div class="grid">
+        <div>
+          <label for="moduleCount">Number of modules</label>
+          <input id="moduleCount" type="number" min="1" max="100" value="12" inputmode="numeric">
+        </div>
+        <div>
+          <label for="startDate">Start week</label>
+          <input id="startDate" type="date" value="2026-07-07">
+          <p class="hint">Use the first day of the teaching week.</p>
+        </div>
+        <div>
+          <label for="breakDate">Mid-semester week-break <span style="font-weight:400">(optional)</span></label>
+          <input id="breakDate" type="date">
+          <p class="hint">Leave blank for no semester break.</p>
+        </div>
+      </div>
+
+      <label for="scheduleInput">Paste weekly schedule</label>
+      <textarea id="scheduleInput" spellcheck="false" placeholder="Examples:
+Module 1    Mobile computing terms, features and motivation
+Module 2    User-centred design concepts for mobile applications
+Module 3    Mobile interaction design: Patterns and techniques
+
+Or paste a copied table with tabs between columns."></textarea>
+      <p class="hint">The parser accepts one item per line, tab-separated tables, pipe-separated tables, or lines such as “Module 1: Topic”.</p>
+
+      <div class="actions">
+        <button id="generateBtn" type="button">Generate schedule</button>
+        <button id="copyHtmlBtn" type="button" class="secondary">Copy generated HTML</button>
+        <button id="clearBtn" type="button" class="secondary">Clear schedule</button>
+      </div>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="panel preview" aria-labelledby="preview-title">
+      <div class="preview-head">
+        <div class="subject-heading" id="preview-title">
+          <div class="calendar-icon" aria-hidden="true">📅</div>
+          <span>Subject schedule</span>
+        </div>
+      </div>
+      <div class="preview-body" id="scheduleOutput"></div>
+    </section>
+
+    <p class="footer-note">Everything runs locally in this page. No schedule data is uploaded anywhere.</p>
+  </main>
+
+  <script>
+    (() => {
+      const els = {
+        moduleCount: document.getElementById('moduleCount'),
+        startDate: document.getElementById('startDate'),
+        breakDate: document.getElementById('breakDate'),
+        scheduleInput: document.getElementById('scheduleInput'),
+        generateBtn: document.getElementById('generateBtn'),
+        copyHtmlBtn: document.getElementById('copyHtmlBtn'),
+        clearBtn: document.getElementById('clearBtn'),
+        status: document.getElementById('status'),
+        output: document.getElementById('scheduleOutput')
+      };
+
+      const dateFormatter = new Intl.DateTimeFormat('en-AU', {
+        day: '2-digit', month: 'long', year: 'numeric'
+      });
+
+      let lastGeneratedHtml = '';
+
+      function parseLocalDate(value) {
+        if (!value) return null;
+        const [y, m, d] = value.split('-').map(Number);
+        if (![y, m, d].every(Number.isFinite)) return null;
+        return new Date(y, m - 1, d);
+      }
+
+      function addDays(date, days) {
+        const copy = new Date(date);
+        copy.setDate(copy.getDate() + days);
+        return copy;
+      }
+
+      function formatRange(start) {
+        const end = addDays(start, 6);
+        return `${dateFormatter.format(start)} – ${dateFormatter.format(end)}`;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;');
+      }
+
+      function cleanText(value) {
+        return String(value ?? '').replace(/\s+/g, ' ').trim();
+      }
+
+      function looksLikeHeader(line) {
+        const s = cleanText(line).toLowerCase();
+        return /^(week|module|learning component|topic|description|learning component\s+description)(\s+number)?$/.test(s);
+      }
+
+      function parseSchedule(text) {
+        const rawLines = text.replace(/\r/g, '').split('\n');
+        const lines = rawLines.map(cleanText).filter(Boolean).filter(line => !looksLikeHeader(line));
+        const rows = [];
+
+        for (const line of lines) {
+          if (line.includes('\t')) {
+            const cols = line.split('\t').map(cleanText).filter(Boolean);
+            if (cols.length >= 2) {
+              rows.push({ label: cols[0], description: cols.slice(1).join(' — ') });
+              continue;
+            }
+          }
+
+          if (line.includes('|')) {
+            const cols = line.split('|').map(cleanText).filter(Boolean);
+            if (cols.length >= 2) {
+              rows.push({ label: cols[0], description: cols.slice(1).join(' — ') });
+              continue;
+            }
+          }
+
+          const moduleMatch = line.match(/^((?:module|week)\s*\d+)\s*[:\-–—]?\s*(.*)$/i);
+          if (moduleMatch) {
+            rows.push({ label: cleanText(moduleMatch[1]), description: cleanText(moduleMatch[2]) });
+            continue;
+          }
+
+          const numberedMatch = line.match(/^(\d+)\s*[.):-]\s*(.+)$/);
+          if (numberedMatch) {
+            rows.push({ label: `Module ${numberedMatch[1]}`, description: cleanText(numberedMatch[2]) });
+            continue;
+          }
+
+          // Last-resort handling for a simple pasted list: treat each line as a topic.
+          rows.push({ label: '', description: line });
+        }
+
+        return rows;
+      }
+
+      function normalizeRows(rows, count) {
+        const output = [];
+        for (let i = 0; i < count; i++) {
+          const source = rows[i] || { label: '', description: '' };
+          const labelMatch = source.label.match(/(?:module|week)\s*(\d+)/i);
+          const labelNumber = labelMatch ? Number(labelMatch[1]) : i + 1;
+          output.push({
+            label: `Module ${Number.isFinite(labelNumber) ? labelNumber : i + 1}`,
+            description: source.description || ''
+          });
+        }
+        return output;
+      }
+
+      function setStatus(message, isError = false) {
+        els.status.textContent = message;
+        els.status.classList.toggle('error', isError);
+      }
+
+      function buildSchedule() {
+        const count = Number.parseInt(els.moduleCount.value, 10);
+        const start = parseLocalDate(els.startDate.value);
+        const breakDate = parseLocalDate(els.breakDate.value);
+
+        if (!Number.isInteger(count) || count < 1 || count > 100) {
+          setStatus('Number of modules must be between 1 and 100.', true);
+          return;
+        }
+        if (!start) {
+          setStatus('Please enter a valid start week.', true);
+          return;
+        }
+        if (breakDate && breakDate < start) {
+          setStatus('The break date must be on or after the start week.', true);
+          return;
+        }
+
+        const parsed = parseSchedule(els.scheduleInput.value);
+        const rows = normalizeRows(parsed, count);
+        let currentWeekStart = new Date(start);
+        let breakInserted = false;
+        let moduleWeek = 1;
+        let bodyHtml = '';
+
+        for (let i = 0; i < count; i++) {
+          if (breakDate && !breakInserted && currentWeekStart.getTime() >= breakDate.getTime()) {
+            bodyHtml += `
+              <tr class="break-row">
+                <td><strong>Mid-Semester Break</strong></td>
+                <td>No classes this week.</td>
+                <td>${escapeHtml(formatRange(breakDate))} (Break)</td>
+              </tr>`;
+            breakInserted = true;
+            currentWeekStart = addDays(breakDate, 7);
+          }
+
+          const row = rows[i];
+          const description = row.description
+            ? escapeHtml(row.description)
+            : '<span class="empty-note">No description supplied</span>';
+
+          bodyHtml += `
+            <tr>
+              <td>${escapeHtml(row.label || `Module ${i + 1}`)}</td>
+              <td>${description}</td>
+              <td>${escapeHtml(formatRange(currentWeekStart))} (Week ${moduleWeek})</td>
+            </tr>`;
+
+          currentWeekStart = addDays(currentWeekStart, 7);
+          moduleWeek++;
+        }
+
+        if (breakDate && !breakInserted && breakDate >= start) {
+          // Break dates later than all generated teaching weeks are left out rather than appended.
+        }
+
+        const scheduleHtml = `
+<div id="schedule-wrapper">
+  <div id="start-week"><span aria-hidden="true">📅</span> <span style="font-size:1.2rem;">Subject schedule</span></div>
+  <div id="start-week-display"><strong>Start Week:</strong> ${escapeHtml(formatDisplayInputDate(els.startDate.value))}</div>
+  <div id="semester-break"><strong>Mid-Semester Break (holidays):</strong> ${breakDate ? escapeHtml(formatDisplayInputDate(els.breakDate.value)) : 'None'}</div>
+  <br>
+  <span style="font-size:1rem;">This subject consists of </span>
+  <strong style="font-size:1rem;">${count}</strong>
+  <span style="font-size:1rem;"> modules.</span>
+  <br><br>
+  <table id="schedule-table" border="1" cellspacing="0">
+    <thead>
+      <tr><th>Learning component</th><th>Description</th><th>Dates</th></tr>
+    </thead>
+    <tbody>
+      ${bodyHtml}
+    </tbody>
+  </table>
+</div>`.trim();
+
+        els.output.innerHTML = `
+          <div class="summary">
+            <p class="summary-line"><strong>Start Week:</strong> ${escapeHtml(formatRange(start))}</p>
+            <p class="summary-line"><strong>Mid-Semester Break:</strong> ${breakDate ? escapeHtml(formatDisplayInputDate(els.breakDate.value)) : 'None'}</p>
+            <p class="summary-line"><strong>Modules:</strong> ${count}</p>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Learning component</th><th>Description</th><th>Dates</th></tr></thead>
+              <tbody>${bodyHtml}</tbody>
+            </table>
+          </div>
+          <p class="small-note">Generated ${rows.filter(r => r.description).length} populated schedule item(s) from ${parsed.length} pasted line(s).</p>
+        `;
+
+        lastGeneratedHtml = scheduleHtml;
+
+        let status = `Generated ${count} module${count === 1 ? '' : 's'}.`;
+        if (parsed.length > count) {
+          status += ` ${parsed.length - count} extra pasted item(s) were not included.`;
+        } else if (parsed.length < count && parsed.length > 0) {
+          status += ` ${count - parsed.length} module(s) have no pasted description.`;
+        }
+        setStatus(status);
+      }
+
+      function formatDisplayInputDate(value) {
+        const date = parseLocalDate(value);
+        return date ? `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}` : '';
+      }
+
+      function clearSchedule() {
+        els.scheduleInput.value = '';
+        els.breakDate.value = '';
+        els.moduleCount.value = '12';
+        els.startDate.value = '2026-07-07';
+        buildSchedule();
+        setStatus('Schedule input cleared.');
+      }
+
+      els.generateBtn.addEventListener('click', buildSchedule);
+      els.clearBtn.addEventListener('click', clearSchedule);
+
+      [els.moduleCount, els.startDate, els.breakDate].forEach(el => {
+        el.addEventListener('change', buildSchedule);
+      });
+
+      els.copyHtmlBtn.addEventListener('click', async () => {
+        if (!lastGeneratedHtml) buildSchedule();
+        try {
+          await navigator.clipboard.writeText(lastGeneratedHtml);
+          setStatus('Generated schedule HTML copied to the clipboard.');
+        } catch (error) {
+          setStatus('Clipboard access was blocked. Select and copy the generated HTML from the page source instead.', true);
+        }
+      });
+
+      buildSchedule();
+    })();
+  </script>
+</body>
+</html>
