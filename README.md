@@ -1,14 +1,10 @@
 # LMS Tools
 
-[svg](https://github.com/TonyLatrobe/lms#lms-tools)
-
 A collection of standalone HTML tools and enhancements designed to support teaching and learning in LMS environments.
 
 These tools are primarily intended for use with LMS **Text and Media Area** components and similar HTML-enabled content areas. They are designed to be simple, lightweight, and easy to copy, customise, and embed.
 
 ## 🌐 Website
-
-[svg](https://github.com/TonyLatrobe/lms#-website)
 
 **Hello World:** [https://tonylatrobe.github.io/lms/](https://tonylatrobe.github.io/lms/)
 
@@ -18,11 +14,7 @@ The GitHub Pages site provides access to the tools and examples in this reposito
 
 ## 🧰 Tools
 
-[svg](https://github.com/TonyLatrobe/lms#-tools)
-
 ### Weekly Schedule Builder
-
-[svg](https://github.com/TonyLatrobe/lms#weekly-schedule-builder)
 
 **File:** [`WeeklyScheduleBuilder.html`](https://github.com/TonyLatrobe/lms/blob/main/WeeklyScheduleBuilder.html)
 
@@ -44,8 +36,6 @@ The default configuration supports **12 modules**.
 
 ### Tab Builder
 
-[svg](https://github.com/TonyLatrobe/lms#tab-builder)
-
 **File:** [`tabBuilder`](https://github.com/TonyLatrobe/lms/blob/main/tabBuilder)
 
 A browser-based tool for creating tabbed content without writing the tab interface manually.
@@ -66,8 +56,6 @@ This is particularly useful for presenting related content in a compact LMS page
 
 ### Escape Room
 
-[svg](https://github.com/TonyLatrobe/lms#escape-room)
-
 **File:** [`escape.html`](https://github.com/TonyLatrobe/lms/blob/main/escape.html)
 
 An interactive escape-room style learning activity designed for use in an LMS.
@@ -76,8 +64,6 @@ An interactive escape-room style learning activity designed for use in an LMS.
 
 ### LMS Escape Treasure Hunt
 
-[svg](https://github.com/TonyLatrobe/lms#lms-escape-treasure-hunt)
-
 **File:** [`lms_escape_treasure_hunt.html`](https://github.com/TonyLatrobe/lms/blob/main/lms_escape_treasure_hunt.html)
 
 An interactive treasure-hunt style activity for LMS-based teaching and learning.
@@ -85,8 +71,6 @@ An interactive treasure-hunt style activity for LMS-based teaching and learning.
 ---
 
 ### Task Manager Simulator
-
-[svg](https://github.com/TonyLatrobe/lms#task-manager-simulator)
 
 **File:** [`tasksimulator.html`](https://github.com/TonyLatrobe/lms/blob/main/tasksimulator.html)
 
@@ -154,8 +138,6 @@ Difficulty controls the number of guesses rather than the word itself: **Easy** 
 
 ### Index
 
-[svg](https://github.com/TonyLatrobe/lms#index)
-
 **File:** [`index.html`](https://github.com/TonyLatrobe/lms/blob/main/index.html)
 
 The main landing page for the collection of LMS tools.
@@ -163,8 +145,6 @@ The main landing page for the collection of LMS tools.
 ---
 
 ## 🖼️ Supporting Images
-
-[svg](https://github.com/TonyLatrobe/lms#%EF%B8%8F-supporting-images)
 
 The repository also contains image assets used by the interactive activities:
 
@@ -176,8 +156,6 @@ The repository also contains image assets used by the interactive activities:
 ---
 
 ## 💡 Using the Tools in an LMS
-
-[svg](https://github.com/TonyLatrobe/lms#-using-the-tools-in-an-lms)
 
 Most of the tools are designed to work without installing software or adding external dependencies.
 
@@ -198,8 +176,6 @@ The generated content is intended to be self-contained so it can be embedded dir
 
 ## 🧑‍💻 Design Philosophy
 
-[svg](https://github.com/TonyLatrobe/lms#%E2%80%8D-design-philosophy)
-
 These tools aim to follow a few simple principles:
 
 **Standalone** Each tool should work as a single HTML page wherever possible.
@@ -216,8 +192,6 @@ These tools aim to follow a few simple principles:
 
 ## 📁 Repository
 
-[svg](https://github.com/TonyLatrobe/lms#-repository)
-
 **GitHub:** https://github.com/TonyLatrobe/lms
 
 **GitHub Pages:** [https://tonylatrobe.github.io/lms/](https://tonylatrobe.github.io/lms/)
@@ -225,7 +199,5 @@ These tools aim to follow a few simple principles:
 ---
 
 ## 📜 Licence
-
-[svg](https://github.com/TonyLatrobe/lms#-licence)
 
 See the repository for licensing information.
