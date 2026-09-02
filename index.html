@@ -211,8 +211,6 @@
       border-radius: var(--radius);
     }
 
-    .note strong { color: var(--text); }
-
     .asset-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -282,7 +280,7 @@
       main { padding-top: 34px; }
       .asset-grid { grid-template-columns: 1fr; }
     }
-  
+
     .tool-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1rem; margin:1.25rem 0 2.5rem; }
     .tool-card { border:1px solid #d8dee8; border-radius:12px; padding:1.25rem; background:#fff; }
     .tool-card h3 { margin-top:0; }
@@ -312,7 +310,6 @@
   <main>
     <div class="container">
 
-
       <section aria-labelledby="tools-heading">
         <h2 id="tools-heading">Tools</h2>
         <p class="section-intro">Standalone tools and interactive activities for building and enhancing LMS content.</p>
@@ -322,6 +319,18 @@
           <article class="tool-card"><h3>🔐 Escape Room</h3><p>An interactive escape-room style learning activity designed for LMS use.</p><a href="escape.html">Open Escape Room →</a></article>
           <article class="tool-card"><h3>🗺️ LMS Escape Treasure Hunt</h3><p>An interactive treasure-hunt learning activity for LMS-based teaching and learning.</p><a href="lms_escape_treasure_hunt.html">Open Treasure Hunt →</a></article>
           <article class="tool-card"><h3>✅ Task Manager Simulator</h3><p>An interactive task-management simulation with functionality for playing, saving, and sharing the activity.</p><a href="tasksimulator.html">Open Task Manager Simulator →</a></article>
+
+          <article class="tool-card">
+            <h3>🔎 Phoneme Word Search Builder</h3>
+            <p>Create self-contained word-search activities using ordinary words or IPA phoneme sequences. Configure difficulty, hints and theme, preview the learner activity, and generate a printable teacher answer key.</p>
+            <a href="phoneme_word_search_builder.html">Open Phoneme Word Search Builder →</a>
+          </article>
+
+          <article class="tool-card">
+            <h3>🔤 Phoneme Wordle Builder</h3>
+            <p>Create Wordle-style phoneme activities from a custom word list. Select a target word, configure the number of attempts, English and spelling hints, and theme, then preview and download the standalone activity.</p>
+            <a href="phoneme_wordle_builder.html">Open Phoneme Wordle Builder →</a>
+          </article>
         </div>
       </section>
 
