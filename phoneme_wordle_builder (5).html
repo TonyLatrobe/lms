@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phoneme Wordle Builder</title>
+<style>
+  body { background:#111; color:#eee; font-family: Arial, Helvetica, sans-serif; margin:0; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  h1.page-title {
+    margin-bottom: 1.5rem; font-weight: 900; font-size: clamp(1.8rem, 4vw, 3rem);
+    letter-spacing: 1px; color: #8cc4ea; text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(140, 196, 234, 0.6), 0 0 20px rgba(140, 196, 234, 0.4), 0 0 30px rgba(140, 196, 234, 0.25);
+  }
+  h2.section-title {
+    margin: 1.5rem 0 1rem; font-weight: 900; font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+    color: #8cc4ea; text-shadow: 0 0 8px rgba(140, 196, 234, 0.5), 0 0 16px rgba(140, 196, 234, 0.3);
+  }
+  hr { border-color:#444; margin: 24px 0; }
+  code { background:#1b1b1b; padding: 1px 6px; border-radius: 4px; }
+  .builder-grid { display: grid; grid-template-columns: 22rem minmax(0,1fr); gap: 1.5rem; align-items: start; }
+  @media (max-width: 60rem) { .builder-grid { grid-template-columns: 1fr; } }
+  .panel { border: 1px solid #333; border-radius: 12px; background: #1b1b1b; padding: 20px; }
+  label.field-label { display:block; font-weight:700; margin-bottom: 4px; }
+  .help-text { color:#999; font-size: 0.85rem; margin: 0 0 10px; }
+  select { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid #555; background: #111; color: #eee; font-size: 1rem; }
+  textarea#word-list-input {
+    width: 100%; box-sizing: border-box; min-height: 200px; padding: 10px; border-radius: 8px;
+    border: 1px solid #555; background: #111; color: #eee; font-size: 0.9rem; font-family: monospace;
+    resize: vertical;
+  }
+  #word-list-error {
+    display:none; margin-top: 8px; padding: 8px 10px; border-radius: 6px;
+    background:#3a1414; border:1px solid #a33; color:#ffb3b3; font-size: 0.85rem;
+  }
+  .phoneme-palette { display:flex; flex-wrap:wrap; gap:6px; margin-top: 8px; max-height: 8.5rem; overflow-y:auto; padding: 4px; border:1px solid #292929; border-radius:8px; }
+  .phoneme-palette button {
+    padding: 4px 8px; border-radius: 6px; border:1px solid #444; background:#111; color:#eee; cursor:pointer; font-size:0.85rem;
+  }
+  .phoneme-palette button:hover { border-color:#8cc4ea; }
+  fieldset { border: none; padding: 0; margin: 1.2rem 0 0; }
+  legend { font-weight: 700; padding: 0; margin-bottom: 4px; }
+  .radio-option {
+    display: flex; gap: 10px; align-items: flex-start; cursor: pointer;
+    border: 1px solid #333; border-radius: 10px; padding: 10px; margin-bottom: 8px; background:#161616;
+  }
+  .radio-option:hover { border-color:#8cc4ea; background:#1e2733; }
+  .radio-option input { margin-top: 3px; }
+  .radio-option strong { display:block; }
+  .radio-option span.sub { display:block; color:#999; font-size:0.85rem; margin-top:2px; }
+  .toggle-row {
+    display:flex; justify-content: space-between; align-items:flex-start; gap: 10px;
+    border: 1px solid #333; border-radius: 10px; padding: 12px; margin-top: 1.2rem; background:#161616; cursor:pointer;
+  }
+  .toggle-row:hover { border-color:#8cc4ea; background:#1e2733; }
+  .selected-box {
+    margin-top: 1.2rem; border: 1px solid #333; border-radius: 10px; padding: 14px; background:#161616;
+  }
+  .selected-box .eyebrow { text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.06em; color:#999; margin:0; }
+  .unit-chip {
+    display:inline-flex; flex-direction:column; align-items:center; min-width: 44px;
+    border:1px solid #333; border-radius: 8px; padding: 8px 10px; margin: 4px 6px 0 0; background:#111;
+  }
+  .unit-chip strong { font-size: 1rem; }
+  .unit-chip span { color:#999; font-size: 0.7rem; }
+  button.primary-btn {
+    margin-top: 1.5rem; width: 100%; padding: 12px 20px; font-size: 1rem; font-weight: 800;
+    border-radius: 8px; border: none; background: #245d8a; color: #fff; cursor: pointer;
+  }
+  button.primary-btn:hover { background: #1c496d; }
+  button.answer-btn {
+    margin-top: 12px; width: 100%; padding: 10px 16px; font-size: 0.95rem; font-weight: 800;
+    border-radius: 8px; border: 1px solid #a33; background: #2a1414; color:#ffb3b3; cursor: pointer;
+  }
+  button.answer-btn:hover { background: #3a1414; }
+  button.secondary-btn {
+    margin-top: 12px; width: 100%; padding: 10px 16px; font-size: 0.95rem; font-weight: 700;
+    border-radius: 8px; border: 1px solid #555; background: #161616; color:#eee; cursor: pointer;
+  }
+  button.secondary-btn:hover { border-color:#8cc4ea; background:#1e2733; }
+  #download-status { margin-top: 10px; min-height: 1.3rem; color:#9fd0ef; font-size: 0.9rem; }
+  .preview-panel { border: 1px solid #333; border-radius: 12px; background:#1b1b1b; padding: 16px; }
+  .preview-panel iframe { width: 100%; min-height: 900px; border: 1px solid #333; border-radius: 8px; background:#fff; }
+  .theme-toggle-btn { padding: 8px 14px; border-radius: 8px; border:1px solid #555; background:#161616; color:#eee; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ================= INTRO / INSTRUCTIONS ================= -->
+  <h1 class="page-title">Phoneme Wordle Builder</h1>
+
+  <p><strong>This tool builds a self-contained Wordle-style activity your students can play - no accounts, no server, just one HTML file.</strong></p>
+  <p>Edit the <strong>Word List</strong> below to add your own words, or trim the pre-populated list down. Each line is one word, in either of these forms:</p>
+  <p><code>thin</code> - a plain English word. It's split letter-by-letter.</p>
+  <p><code>&theta; &#618; n = thin</code> - a phoneme sequence (space-separated IPA symbols, click the palette below the box to build one), with the English meaning after the <code>=</code>.</p>
+  <p>A line starting with <code>#</code> is a comment/section heading and is ignored (the pre-populated list uses these to group words by phoneme count).</p>
+  <p>Then choose which word from your list is the <strong>Target Word</strong> for this activity, set the Difficulty (controls how many guesses the student gets), and choose whether English words are ever shown to the student.</p>
+  <p>Students see a fixed phoneme keyboard laid out beside the guess board (stacking below it on narrow screens) - the same chart every time, in the same order, so it becomes familiar. Any letters a custom word uses that aren't on that chart appear as extra keys underneath it.</p>
+  <p>The Live Preview on the right is the exact activity that gets downloaded. In the downloaded game, students get a <strong>Hint</strong> button - pressing and holding it briefly reveals one letter/phoneme they haven't got right yet.</p>
+  <hr>
+
+  <!-- ================= BUILDER ================= -->
+  <h2 class="section-title">Configure the Wordle</h2>
+
+  <div class="builder-grid">
+    <div class="panel">
+      <label class="field-label" for="word-list-input">Word List (one per line)</label>
+      <p class="help-text">Plain word, <code>units = hint</code>, or <code># comment</code>.</p>
+      <textarea id="word-list-input" spellcheck="false"></textarea>
+      <div id="word-list-error"></div>
+
+      <p class="help-text" style="margin-top:10px;">Click a phoneme to insert it (leave a space between phonemes on a line):</p>
+      <div class="phoneme-palette" id="phoneme-palette"></div>
+
+      <label class="field-label" for="target-word" style="margin-top:1.2rem;">Target Word</label>
+      <p class="help-text">Which word from your list the student must identify.</p>
+      <select id="target-word"></select>
+
+      <div class="selected-box">
+        <p class="eyebrow">Selected activity</p>
+        <div style="margin-top:6px; display:flex; align-items:baseline; gap:10px;">
+          <strong id="selected-display" style="font-size:1.4rem; color:#8cc4ea;"></strong>
+          <span id="selected-english" style="color:#999;"></span>
+        </div>
+        <div id="unit-chips" style="margin-top: 10px;"></div>
+      </div>
+
+      <fieldset>
+        <legend>Difficulty</legend>
+        <p class="help-text">Difficulty controls how many attempts the student receives.</p>
+        <div id="difficulty-options"></div>
+      </fieldset>
+
+      <div class="toggle-row" id="hints-toggle-row">
+        <span>
+          <strong>Show English words</strong>
+          <span class="sub" style="display:block; color:#999; font-size:0.85rem; margin-top:2px;">Reveal the English word in the win/lose message, and show spelling hints on known phoneme keys.</span>
+        </span>
+        <input type="checkbox" id="hints-enabled" checked style="margin-top:4px; width:20px; height:20px;">
+      </div>
+
+      <div class="toggle-row" id="hint-button-toggle-row">
+        <span>
+          <strong>Include Hint button</strong>
+          <span class="sub" style="display:block; color:#999; font-size:0.85rem; margin-top:2px;">Adds a press-and-hold Hint button that briefly reveals one unsolved letter/phoneme. Turn off to leave it out of the downloaded activity entirely.</span>
+        </span>
+        <input type="checkbox" id="hint-button-enabled" checked style="margin-top:4px; width:20px; height:20px;">
+      </div>
+
+      <div class="toggle-row" id="theme-toggle-row" style="cursor:default;">
+        <span>
+          <strong>Theme</strong>
+          <span class="sub" style="display:block; color:#999; font-size:0.85rem; margin-top:2px;">Applied to the preview and the downloaded file.</span>
+        </span>
+        <button type="button" class="theme-toggle-btn" id="theme-toggle-btn">Light</button>
+      </div>
+
+      <button type="button" class="primary-btn" id="download-btn">Download HTML</button>
+      <p id="download-status" aria-live="polite"></p>
+    </div>
+
+    <div class="preview-panel">
+      <p style="text-transform:uppercase; font-size:0.75rem; letter-spacing:0.06em; color:#999; margin:0;">Learner view</p>
+      <h3 style="margin: 4px 0 4px;">Live activity preview</h3>
+      <p style="color:#999; font-size:0.85rem; margin:0 0 10px;">This is the exact activity included in the downloaded file (Hint button included, Answer Key is not).</p>
+      <iframe id="preview-frame" title="Playable Wordle preview" sandbox="allow-scripts"></iframe>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  "use strict";
+
+  // =====================================================================
+  // Reference phoneme palette (for the insert-a-phoneme helper and hint
+  // tooltips only - words are not restricted to this list; any unit
+  // string works as a letter/phoneme).
+  // =====================================================================
+
+  const PHONEMES = [
+    { ipaSymbol: "p", grapheme: "P", exampleWord: "pen" },
+    { ipaSymbol: "t", grapheme: "T", exampleWord: "tap" },
+    { ipaSymbol: "k", grapheme: "K", exampleWord: "cat" },
+    { ipaSymbol: "b", grapheme: "B", exampleWord: "bed" },
+    { ipaSymbol: "d", grapheme: "D", exampleWord: "dog" },
+    { ipaSymbol: "ɡ", grapheme: "G", exampleWord: "log" },
+    { ipaSymbol: "n", grapheme: "N", exampleWord: "net" },
+    { ipaSymbol: "m", grapheme: "M", exampleWord: "map" },
+    { ipaSymbol: "ŋ", grapheme: "NG", exampleWord: "ring" },
+    { ipaSymbol: "f", grapheme: "F", exampleWord: "fan" },
+    { ipaSymbol: "s", grapheme: "S", exampleWord: "sun" },
+    { ipaSymbol: "θ", grapheme: "TH", exampleWord: "thin" },
+    { ipaSymbol: "ʃ", grapheme: "SH", exampleWord: "ship" },
+    { ipaSymbol: "v", grapheme: "V", exampleWord: "van" },
+    { ipaSymbol: "z", grapheme: "Z", exampleWord: "zip" },
+    { ipaSymbol: "ð", grapheme: "TH", exampleWord: "then" },
+    { ipaSymbol: "ʒ", grapheme: "ZH", exampleWord: "measure" },
+    { ipaSymbol: "l", grapheme: "L", exampleWord: "log" },
+    { ipaSymbol: "ɹ", grapheme: "R", exampleWord: "ring" },
+    { ipaSymbol: "w", grapheme: "W", exampleWord: "win" },
+    { ipaSymbol: "j", grapheme: "Y", exampleWord: "yes" },
+    { ipaSymbol: "h", grapheme: "H", exampleWord: "hat" },
+    { ipaSymbol: "tʃ", grapheme: "CH", exampleWord: "chin" },
+    { ipaSymbol: "dʒ", grapheme: "J", exampleWord: "jam" },
+    { ipaSymbol: "iː", grapheme: "EE", exampleWord: "see" },
+    { ipaSymbol: "ɪ", grapheme: "I", exampleWord: "bid" },
+    { ipaSymbol: "e", grapheme: "E", exampleWord: "bed" },
+    { ipaSymbol: "eː", grapheme: "EY", exampleWord: "hair" },
+    { ipaSymbol: "æ", grapheme: "A", exampleWord: "bad" },
+    { ipaSymbol: "ɐ", grapheme: "U", exampleWord: "bud" },
+    { ipaSymbol: "ɐː", grapheme: "AR", exampleWord: "bark" },
+    { ipaSymbol: "ɜː", grapheme: "ER", exampleWord: "bird" },
+    { ipaSymbol: "ʉː", grapheme: "OO", exampleWord: "boot" },
+    { ipaSymbol: "ɔ", grapheme: "O", exampleWord: "log" },
+    { ipaSymbol: "oː", grapheme: "OR", exampleWord: "fork" },
+    { ipaSymbol: "ʊ", grapheme: "OO", exampleWord: "book" },
+    { ipaSymbol: "æɪ", grapheme: "AI", exampleWord: "bait" },
+    { ipaSymbol: "ɑe", grapheme: "IGH", exampleWord: "bike" },
+    { ipaSymbol: "oɪ", grapheme: "OI", exampleWord: "boil" },
+    { ipaSymbol: "əʉ", grapheme: "OA", exampleWord: "boat" },
+    { ipaSymbol: "æɔ", grapheme: "OW", exampleWord: "cloud" },
+    { ipaSymbol: "ɪə", grapheme: "EAR", exampleWord: "beard" },
+    { ipaSymbol: "ə", grapheme: "UH", exampleWord: "sofa" }
+  ];
+
+  // Fixed keyboard layout, matching the official phoneme chart. Empty
+  // slots (null) are intentional spacers and are rendered as invisible
+  // placeholders so the grid alignment/order is preserved.
+  const KEYBOARD_LAYOUT = [
+    ["p", "t", "k", null],
+    ["b", "d", "ɡ", null],
+    ["n", "m", "ŋ", null],
+    ["f", "s", "θ", "ʃ"],
+    ["v", "z", "ð", "ʒ"],
+    ["l", "ɹ", "w", "j"],
+    ["h", "tʃ", "dʒ", null],
+    ["iː", "ɪ", "e", "eː"],
+    ["æ", "ɐ", "ɐː", "ɜː"],
+    ["ʉː", "ɔ", "oː", "ʊ"],
+    ["æɪ", "ɑe", "oɪ", "əʉ"],
+    ["æɔ", "ɪə", null, "ə"]
+  ];
+  const PHONEME_BY_SYMBOL = new Map(PHONEMES.map((p) => [p.ipaSymbol, p]));
+
+  const DEFAULT_WORD_LIST_TEXT = [
+    "# 30 words with 3 phonemes",
+    "b e d = bed",
+    "b ɪ d = bid",
+    "b æ d = bad",
+    "b ɐ d = bud",
+    "b ɜː d = bird",
+    "b ɐː k = bark",
+    "b ʊ k = book",
+    "b ʉː t = boot",
+    "b əʉ t = boat",
+    "b ɑe k = bike",
+    "b æɪ t = bait",
+    "b oɪ l = boil",
+    "b ɪə d = beard",
+    "tʃ oɪ s = choice",
+    "θ ɪ n = thin",
+    "ð e n = then",
+    "ʃ ɪ p = ship",
+    "tʃ ɪ n = chin",
+    "dʒ æ m = jam",
+    "j e s = yes",
+    "w ɪ n = win",
+    "ɹ ɪ ŋ = ring",
+    "l ɔ ɡ = log",
+    "f æ n = fan",
+    "v æ n = van",
+    "s ɐ n = sun",
+    "z ɪ p = zip",
+    "ɡ ɐ m = gum",
+    "h æ t = hat",
+    "f oː k = fork",
+    "",
+    "# 30 words with 4 phonemes",
+    "s t ɔ p = stop",
+    "f ɹ ɔ ɡ = frog",
+    "k l æ p = clap",
+    "s l ɪ p = slip",
+    "d ɹ ɐ m = drum",
+    "ɡ ɹ ɪ n = grin",
+    "t ɹ æɪ n = train",
+    "k l æɔ d = cloud",
+    "s n æɪ k = snake",
+    "s m ɑe l = smile",
+    "m ɪ l k = milk",
+    "h æ n d = hand",
+    "t e n t = tent",
+    "dʒ ɐ m p = jump",
+    "l æ m p = lamp",
+    "b æ ŋ k = bank",
+    "f ɹ æɪ m = frame",
+    "k əʉ l d = cold",
+    "w ɪ n d = wind",
+    "s ɔ f t = soft",
+    "ɡ ɪ f t = gift",
+    "d e s k = desk",
+    "l e f t = left",
+    "p ɔ n d = pond",
+    "ɡ ɔ l f = golf",
+    "s ɪ l k = silk",
+    "ɡ ɹ æɪ t = great",
+    "k ɹ æ b = crab",
+    "p l ɐ ɡ = plug",
+    "k w ɪ z = quiz",
+    "",
+    "# 30 words with 5 phonemes",
+    "s t æ m p = stamp",
+    "p l æ n t = plant",
+    "b l æ ŋ k = blank",
+    "ɡ ɹ æ n d = grand",
+    "k l æ m p = clamp",
+    "t w ɪ s t = twist",
+    "t ɹ ɐ s t = trust",
+    "d ɹ ɪ ŋ k = drink",
+    "b ɹ ɪ s k = brisk",
+    "ʃ ɹ ɪ m p = shrimp",
+    "s k ɹ æ p = scrap",
+    "s k ɹ ɑe b = scribe",
+    "s k ɹ iː m = scream",
+    "s p l æ ʃ = splash",
+    "s p ɹ ɪ ŋ = spring",
+    "s t ɹ æ p = strap",
+    "s t ɹ iː t = street",
+    "s k ɹ ɐ b = scrub",
+    "f l ɐː s k = flask",
+    "k l ɐː s p = clasp",
+    "k l e f t = cleft",
+    "ɡ l ɪ n t = glint",
+    "b l e n d = blend",
+    "s t ɹ æɪ n = strain",
+    "θ ɹ ɐ s t = thrust",
+    "s p ɹ oː l = sprawl",
+    "s k ɹ oː l = scrawl",
+    "s p ɹ ɪ ɡ = sprig",
+    "s p ɹ æɔ t = sprout",
+    "s m əʉ k t = smoked"
+  ].join("\n");
+
+  const DIFFICULTY_DETAILS = {
+    easy: { label: "Easy", attempts: 8, description: "More attempts for learners who need additional support." },
+    standard: { label: "Standard", attempts: 6, description: "A balanced number of attempts for most learners." },
+    challenging: { label: "Challenging", attempts: 4, description: "Fewer attempts for a more challenging activity." }
+  };
+  const DIFFICULTY_ORDER = ["easy", "standard", "challenging"];
+
+  // =====================================================================
+  // Word-list parsing (same format as the Word Search builder)
+  // Each line: "#..." comment, plain word ("cat"), or "units = hint".
+  // =====================================================================
+
+  function parseWordListText(text) {
+    const rawLines = text.split("\n").map((l) => l.trim());
+    const words = [];
+    const errors = [];
+
+    rawLines.forEach((line, index) => {
+      if (line.length === 0) { return; }
+      if (line.startsWith("#")) { return; }
+
+      let unitsPart = line;
+      let hint = "";
+
+      const eqIndex = line.indexOf("=");
+      if (eqIndex !== -1) {
+        unitsPart = line.slice(0, eqIndex).trim();
+        hint = line.slice(eqIndex + 1).trim();
+      }
+
+      if (!unitsPart) {
+        errors.push("Line " + (index + 1) + " is empty.");
+        return;
+      }
+
+      const units = unitsPart.includes(" ")
+        ? unitsPart.split(/\s+/).filter((u) => u.length > 0)
+        : unitsPart.split("");
+
+      if (units.length < 2) {
+        errors.push("Line " + (index + 1) + " (\"" + line + "\") needs at least 2 letters/phonemes.");
+        return;
+      }
+
+      const english = hint || unitsPart.replace(/\s+/g, "");
+
+      words.push({
+        id: "w" + index + "-" + unitsPart.replace(/\s+/g, "").toLowerCase(),
+        english: english,
+        display: unitsPart.replace(/\s+/g, " "),
+        units: units
+      });
+    });
+
+    return { words: words, errors: errors };
+  }
+
+  // =====================================================================
+  // Standalone document builder (ported from lib/standalone.ts, generalised
+  // from fixed phonemeIds to arbitrary unit strings)
+  // =====================================================================
+
+  function serializeForScript(value) {
+    return JSON.stringify(value)
+      .split("<").join("\\u003c")
+      .split(">").join("\\u003e")
+      .split("&").join("\\u0026");
+  }
+
+  function documentShell(opts) {
+    const title = opts.title;
+    const theme = opts.theme;
+    const body = opts.body;
+    const script = opts.script;
+    const gameStyles = opts.gameStyles;
+
+    return `<!doctype html>
+<html lang="en" data-theme="${theme}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="${theme}">
+  <title>${title}</title>
+  <style>
+    :root {
+      --background: #f3f7fb; --surface: #fcfdff; --soft: #e4edf6; --text: #17233a;
+      --muted: #53657a; --border: #c6d5e4; --control-border: #8195aa; --accent: #245d8a;
+      --action: #245d8a; --action-hover: #1c496d; --action-text: #ffffff; --focus: #245d8a;
+      --correct: #08734f; --present: #9a5b00; --absent: #65767b; --hint: #6d28d9;
+    }
+    [data-theme="dark"] {
+      --background: #111c2e; --surface: #1b2a41; --soft: #263a56; --text: #f4f7fb;
+      --muted: #b9c7d8; --border: #405873; --control-border: #6b85a2; --accent: #8cc4ea;
+      --action: #317aab; --action-hover: #285f88; --action-text: #ffffff; --focus: #8cc4ea;
+      --correct: #64d7b0; --present: #f0bd61; --absent: #a6b4b8; --hint: #c4b5fd;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--background); }
+    body { min-height: 100vh; margin: 0; background: var(--background); color: var(--text); font-family: Arial, Helvetica, sans-serif; line-height: 1.5; }
+    button { font: inherit; }
+    button:focus-visible, .skip-link:focus { outline: 3px solid var(--focus); outline-offset: 3px; }
+    .skip-link { position: fixed; top: -5rem; left: 1rem; z-index: 10; padding: 0.65rem 1rem; background: var(--text); color: var(--surface); font-weight: 700; }
+    .skip-link:focus { top: 1rem; }
+    .app { width: min(100% - 2rem, 70rem); margin: 0 auto; padding: 1.5rem 0 2.5rem; }
+    .brand { margin: 0 0 1rem; color: var(--accent); font-size: 1.1rem; font-weight: 800; }
+    .panel { overflow: hidden; border: 1px solid var(--border); border-radius: 0.75rem; background: var(--surface); }
+    .panel-header { padding: clamp(1.2rem, 4vw, 2rem); border-bottom: 1px solid var(--border); background: var(--soft); }
+    .eyebrow { margin: 0 0 0.35rem; color: var(--accent); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(1.8rem, 5vw, 2.8rem); line-height: 1.1; }
+    .lede { max-width: 48rem; margin: 0.7rem 0 0; color: var(--muted); }
+    .game { padding: clamp(1rem, 4vw, 2rem); }
+    .status-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; }
+    .status { margin: 0; color: var(--muted); font-weight: 700; }
+    .status-buttons { display:flex; gap:0.5rem; flex-wrap:wrap; }
+    .restart, .hint-btn { border: 1px solid var(--control-border); border-radius: 0.4rem; padding: 0.55rem 0.8rem; background: var(--surface); color: var(--text); cursor: pointer; font-weight: 700; }
+    .restart:hover { border-color: var(--accent); background: var(--soft); }
+    .hint-btn { border-color: var(--hint); color: var(--hint); }
+    .hint-btn:hover, .hint-btn:active { background: var(--soft); }
+    .hint-reveal { display:none; margin: 0 0 1rem; border: 2px solid var(--hint); border-radius: 0.5rem; padding: 0.7rem 0.9rem; background: var(--soft); font-weight: 800; font-size: 1.2rem; text-align:center; }
+    .hint-reveal[data-visible="true"] { display:block; }
+    .message { min-height: 3rem; margin: 1rem 0; border-left: 4px solid var(--accent); padding: 0.7rem 0.85rem; background: var(--soft); font-weight: 700; }
+    .message[data-tone="success"] { border-color: var(--correct); }
+    .message[data-tone="warning"] { border-color: var(--present); }
+    .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .footer-note { margin: 1rem 0 0; color: var(--muted); font-size: 0.82rem; text-align: center; }
+    ${gameStyles}
+    @media (max-width: 36rem) {
+      .app { width: min(100% - 1rem, 70rem); padding-top: 0.5rem; }
+      .panel { border-radius: 0.5rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#activity">Skip to activity</a>
+  <main class="app" id="activity">
+    <p class="brand"></p>
+    ${body}
+  </main>
+  <script>
+    "use strict";
+    ${script}
+  <\/script>
+</body>
+</html>`;
+  }
+
+  const WORDLE_STYLES = `
+  .wordle-layout { display: flex; gap: 1.5rem; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+  .wordle-board-col { flex: 1 1 20rem; min-width: 16rem; max-width: 28rem; }
+  .wordle-keyboard-col { flex: 0 0 auto; }
+  .board { display: grid; gap: 0.35rem; width: 100%; margin: 0 auto; }
+  .guess-row { display: grid; grid-template-columns: repeat(var(--unit-count), minmax(0, 1fr)); justify-content: center; gap: 0.35rem; }
+  .tile { display: grid; min-height: clamp(2.6rem, 9vw, 3.6rem); place-items: center; border: 2px solid var(--border); border-radius: 0.4rem; background: var(--surface); font-size: clamp(1.05rem, 4vw, 1.5rem); font-weight: 800; }
+  .tile small { font-size: 0.65rem; line-height: 1; }
+  .tile[data-state="correct"] { border-color: #166534; background: #15803d; color: #ffffff; }
+  .tile[data-state="present"] { border-color: #b45309; background: #fbbf24; color: #422006; }
+  .tile[data-state="absent"] { border-color: #475569; background: #64748b; color: #ffffff; }
+  .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 1rem; margin: 0.75rem 0; color: var(--muted); font-size: 0.75rem; }
+  .keyboard-grid { display: grid; grid-template-columns: repeat(4, minmax(2.3rem, 3rem)); gap: 0.3rem; }
+  .keyboard-extra { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.6rem; max-width: 14rem; }
+  .keyboard-actions { display: flex; gap: 0.4rem; margin-top: 0.75rem; }
+  .key { position: relative; display: grid; min-width: 2.3rem; min-height: 2.5rem; place-items: center; border: 1px solid var(--control-border); border-radius: 0.4rem; padding: 0.2rem 0.3rem; background: var(--surface); color: var(--text); cursor: pointer; }
+  .key:hover { border-color: var(--accent); background: var(--soft); }
+  .key .unit { font-weight: 800; line-height: 1; font-size: 0.85rem; }
+  .key.key-blank { visibility: hidden; pointer-events: none; border: none; background: none; }
+  .key.action { min-width: 0; flex: 1; border-color: var(--action); background: var(--action); color: var(--action-text); font-weight: 800; font-size: 0.85rem; padding: 0.5rem 0.4rem; }
+  .key.action:hover { border-color: var(--action-hover); background: var(--action-hover); }
+  .key.secondary { background: var(--soft); color: var(--text); border-color: var(--control-border); }
+  .key[data-hint]::after { position: absolute; bottom: calc(100% + 0.4rem); left: 50%; z-index: 5; display: none; width: max-content; max-width: 12rem; padding: 0.35rem 0.5rem; transform: translateX(-50%); background: var(--text); color: var(--surface); content: attr(data-hint); font-size: 0.7rem; }
+  .key[data-hint]:not([data-tooltip-hidden="true"]):hover::after, .key[data-hint]:not([data-tooltip-hidden="true"]):focus-visible::after { display: block; }
+  .hint-note { margin: 0.75rem 0 0; color: var(--muted); font-size: 0.8rem; }
+  @media (max-width: 52rem) {
+    .wordle-layout { flex-direction: column; align-items: stretch; }
+    .wordle-keyboard-col { display: flex; flex-direction: column; align-items: center; }
+  }
+  `;
+
+  function buildStandaloneWordleHtml(config, theme) {
+    const selectedWord = config.words.find((w) => w.id === config.wordId);
+    const maximumAttempts = DIFFICULTY_DETAILS[config.difficulty].attempts;
+    const unitCount = selectedWord.units.length;
+
+    // The keyboard is the fixed phoneme chart layout. Any unit used by the
+    // word list that isn't part of that chart (e.g. plain English letters
+    // from a custom word) is offered as an extra key underneath it, so
+    // custom words stay guessable without disturbing the chart's order.
+    const layoutSymbolsSet = new Set(KEYBOARD_LAYOUT.flat().filter((s) => s !== null));
+    const extraUnitsSet = new Set();
+    config.words.forEach((w) => w.units.forEach((u) => { if (!layoutSymbolsSet.has(u)) { extraUnitsSet.add(u); } }));
+    selectedWord.units.forEach((u) => { if (!layoutSymbolsSet.has(u)) { extraUnitsSet.add(u); } });
+    const extraUnits = Array.from(extraUnitsSet);
+
+    const data = {
+      selectedWord: selectedWord,
+      maximumAttempts: maximumAttempts,
+      unitCount: unitCount,
+      hintsEnabled: config.hintsEnabled,
+      hintButtonEnabled: config.hintButtonEnabled,
+      keyboardLayout: KEYBOARD_LAYOUT,
+      extraUnits: extraUnits,
+      phonemeHints: PHONEMES.map((p) => ({ symbol: p.ipaSymbol, grapheme: p.grapheme, exampleWord: p.exampleWord, spokenName: p.spokenName }))
+    };
+
+    const initialStatusMessage = `Choose ${unitCount} letters/phonemes to create a guess.`;
+
+    const body = `
+    <section class="panel" aria-labelledby="activity-title">
+      <header class="panel-header">
+        <p class="eyebrow">Wordle</p>
+        <h1 id="activity-title">Build the word</h1>
+        <p class="lede">
+          Choose ${unitCount} letters/phonemes and submit your guess.
+          ✓ means correct place, ↔ means a different place,
+          and × means not in the word.${config.hintButtonEnabled ? ` Press and hold
+          <strong>Hint</strong> to briefly reveal one letter/phoneme.` : ""}
+        </p>
+      </header>
+      <div class="game">
+        <div class="status-row">
+          <p class="status" id="attempt-status">Attempt 1 of ${maximumAttempts}</p>
+          <div class="status-buttons">
+            ${config.hintButtonEnabled ? `<button class="hint-btn" id="hint-btn" type="button">Hint (press &amp; hold)</button>` : ""}
+            <button class="restart" id="restart" type="button">Restart</button>
+          </div>
+        </div>
+        ${config.hintButtonEnabled ? `<div class="hint-reveal" id="hint-reveal"></div>` : ""}
+        <div class="wordle-layout">
+          <div class="wordle-board-col">
+            <div class="board" id="board" role="grid" aria-label="Wordle board with ${maximumAttempts} attempts" aria-rowcount="${maximumAttempts}" aria-colcount="${unitCount}" style="--unit-count: ${unitCount}"></div>
+            <div class="legend" aria-label="Tile result legend">
+              <span>✓ Correct place</span>
+              <span>↔ Different place</span>
+              <span>× Not in word</span>
+            </div>
+            <p class="message" id="status-message">${initialStatusMessage}</p>
+          </div>
+          <div class="wordle-keyboard-col">
+            <div class="keyboard-grid" id="keyboard-grid" role="group" aria-label="Phoneme keyboard"></div>
+            <div class="keyboard-extra" id="keyboard-extra"></div>
+            <div class="keyboard-actions">
+              <button class="key action secondary" id="key-delete" type="button">Delete</button>
+              <button class="key action" id="key-submit" type="button">Submit guess</button>
+            </div>
+            ${config.hintsEnabled
+              ? `<p class="hint-note">Hover over or focus a key for a spelling hint (where available). Press Escape to dismiss a hint.</p>`
+              : ""}
+          </div>
+        </div>
+        <div class="sr-only" id="announcement" aria-live="polite"></div>
+      </div>
+    </section>`;
+
+    const script = `
+    const data = ${serializeForScript(data)};
+    const phonemeHintBySymbol = new Map(data.phonemeHints.map((p) => [p.symbol, p]));
+    const targetUnits = data.selectedWord.units;
+
+    let submittedGuesses = [];
+    let currentGuess = [];
+    let gameIsOver = false;
+
+    const board = document.getElementById("board");
+    const keyboardGrid = document.getElementById("keyboard-grid");
+    const keyboardExtra = document.getElementById("keyboard-extra");
+    const deleteBtn = document.getElementById("key-delete");
+    const submitBtn = document.getElementById("key-submit");
+    const statusMessageElement = document.getElementById("status-message");
+    const attemptStatus = document.getElementById("attempt-status");
+    const announcement = document.getElementById("announcement");
+
+    function scoreGuess(guess, target) {
+      if (guess.length !== target.length) {
+        throw new Error("A Wordle guess must contain the same number of units as the target.");
+      }
+      const results = Array.from({ length: guess.length }, () => "absent");
+      const remainingTarget = target.slice();
+      guess.forEach((unit, position) => {
+        if (unit === target[position]) {
+          results[position] = "correct";
+          remainingTarget[position] = null;
+        }
+      });
+      guess.forEach((unit, position) => {
+        if (results[position] === "correct") { return; }
+        const matchingPosition = remainingTarget.indexOf(unit);
+        if (matchingPosition !== -1) {
+          results[position] = "present";
+          remainingTarget[matchingPosition] = null;
+        }
+      });
+      return results;
+    }
+
+    function setStatusMessage(text, tone) {
+      statusMessageElement.textContent = text;
+      statusMessageElement.dataset.tone = tone || "";
+      announcement.textContent = text;
+    }
+
+    function renderBoard() {
+      board.innerHTML = "";
+      for (let rowIndex = 0; rowIndex < data.maximumAttempts; rowIndex += 1) {
+        const row = document.createElement("div");
+        row.className = "guess-row";
+        row.setAttribute("role", "row");
+        row.setAttribute("aria-rowindex", String(rowIndex + 1));
+
+        const submittedGuess = submittedGuesses[rowIndex];
+        const isCurrentRow = rowIndex === submittedGuesses.length && !gameIsOver;
+        const guessForRow = submittedGuess ?? (isCurrentRow ? currentGuess : []);
+        const rowScore = submittedGuess === undefined ? undefined : scoreGuess(submittedGuess, targetUnits);
+
+        for (let columnIndex = 0; columnIndex < data.unitCount; columnIndex += 1) {
+          const tile = document.createElement("div");
+          tile.className = "tile";
+          tile.setAttribute("role", "gridcell");
+          tile.setAttribute("aria-colindex", String(columnIndex + 1));
+
+          const unit = guessForRow[columnIndex];
+          const guessState = rowScore ? rowScore[columnIndex] : undefined;
+
+          if (unit) {
+            const stateLabels = {
+              correct: "correct in the correct position",
+              present: "appears in another position",
+              absent: "does not appear in the word"
+            };
+            const stateMarks = { correct: "✓", present: "↔", absent: "×" };
+
+            tile.innerHTML = "<span>" + unit + "</span>" +
+              (guessState ? '<small aria-hidden="true">' + stateMarks[guessState] + "</small>" : "");
+
+            const resultDescription = guessState ? ", " + stateLabels[guessState] : "";
+            tile.setAttribute("aria-label", "Attempt " + (rowIndex + 1) + ", position " + (columnIndex + 1) + ", " + unit + resultDescription);
+          } else {
+            tile.setAttribute("aria-label", "Attempt " + (rowIndex + 1) + ", position " + (columnIndex + 1) + ", empty");
+          }
+
+          if (guessState) { tile.dataset.state = guessState; }
+          row.appendChild(tile);
+        }
+        board.appendChild(row);
+      }
+    }
+
+    function createPhonemeKey(unit) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "key";
+      button.setAttribute("aria-label", "Add " + unit);
+
+      let help = "";
+      const knownPhoneme = phonemeHintBySymbol.get(unit);
+
+      if (data.hintsEnabled && knownPhoneme) {
+        const hint = knownPhoneme.grapheme + " as in " + knownPhoneme.exampleWord;
+        const tooltipId = "hint-" + unit.replace(/[^a-zA-Z0-9]/g, "") + "-" + Math.random().toString(36).slice(2, 7);
+        button.title = hint;
+        button.dataset.hint = hint;
+        button.setAttribute("aria-describedby", tooltipId);
+        help = '<span class="sr-only" role="tooltip" id="' + tooltipId + '">' + hint + "</span>";
+        button.addEventListener("mouseenter", () => delete button.dataset.tooltipHidden);
+        button.addEventListener("focus", () => delete button.dataset.tooltipHidden);
+        button.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") { button.dataset.tooltipHidden = "true"; }
+        });
+      }
+
+      button.innerHTML = '<span class="unit">' + unit + "</span>" + help;
+      button.addEventListener("click", () => handleUnitInput(unit));
+      return button;
+    }
+
+    function renderKeyboard() {
+      keyboardGrid.innerHTML = "";
+      data.keyboardLayout.forEach((row) => {
+        row.forEach((unit) => {
+          if (unit === null) {
+            const blank = document.createElement("div");
+            blank.className = "key key-blank";
+            blank.setAttribute("aria-hidden", "true");
+            keyboardGrid.appendChild(blank);
+            return;
+          }
+          keyboardGrid.appendChild(createPhonemeKey(unit));
+        });
+      });
+
+      keyboardExtra.innerHTML = "";
+      data.extraUnits.forEach((unit) => {
+        keyboardExtra.appendChild(createPhonemeKey(unit));
+      });
+
+      deleteBtn.addEventListener("click", handleDelete);
+      submitBtn.addEventListener("click", handleSubmit);
+    }
+
+    function handleUnitInput(unit) {
+      if (gameIsOver || currentGuess.length >= data.unitCount) { return; }
+      currentGuess.push(unit);
+      setStatusMessage("");
+      renderBoard();
+      announcement.textContent = "Added " + unit + ". " + currentGuess.length + " of " + data.unitCount + " selected.";
+    }
+
+    function handleDelete() {
+      if (gameIsOver || currentGuess.length === 0) { return; }
+      const removedUnit = currentGuess.pop();
+      setStatusMessage("");
+      renderBoard();
+      announcement.textContent = "Removed " + removedUnit + ".";
+    }
+
+    function handleRestart() {
+      submittedGuesses = [];
+      currentGuess = [];
+      gameIsOver = false;
+      attemptStatus.textContent = "Attempt 1 of " + data.maximumAttempts;
+      setStatusMessage("Choose " + data.unitCount + " letters/phonemes to create a guess.");
+      renderBoard();
+    }
+
+    ${config.hintButtonEnabled ? `
+    const hintReveal = document.getElementById("hint-reveal");
+
+    function getUnsolvedPosition() {
+      for (let i = 0; i < targetUnits.length; i += 1) {
+        const alreadySolved = submittedGuesses.some((guess) => guess[i] === targetUnits[i]);
+        if (!alreadySolved) { return i; }
+      }
+      return -1;
+    }
+
+    function showHint() {
+      const position = getUnsolvedPosition();
+      if (position === -1) {
+        hintReveal.textContent = "You've already got every letter/phoneme right!";
+      } else {
+        hintReveal.textContent = "Position " + (position + 1) + " is \\"" + targetUnits[position] + "\\"";
+      }
+      hintReveal.dataset.visible = "true";
+    }
+
+    function hideHint() {
+      hintReveal.dataset.visible = "false";
+    }
+    ` : ""}
+
+    function handleSubmit() {
+      if (gameIsOver) { return; }
+      if (currentGuess.length !== data.unitCount) {
+        const remaining = data.unitCount - currentGuess.length;
+        setStatusMessage("Choose " + remaining + " more before submitting.", "warning");
+        return;
+      }
+
+      const completedAttemptNumber = submittedGuesses.length + 1;
+      const guessScore = scoreGuess(currentGuess, targetUnits);
+      const isWinningGuess = guessScore.every((state) => state === "correct");
+
+      submittedGuesses.push(currentGuess.slice());
+      currentGuess = [];
+
+      const hasWon = isWinningGuess;
+      const hasUsedAllAttempts = submittedGuesses.length >= data.maximumAttempts;
+      gameIsOver = hasWon || hasUsedAllAttempts;
+
+      const englishSuffix = data.hintsEnabled ? " — " + data.selectedWord.english : "";
+
+      if (hasWon) {
+        setStatusMessage("Correct! You identified " + data.selectedWord.display + englishSuffix + " in " + completedAttemptNumber + " " + (completedAttemptNumber === 1 ? "attempt" : "attempts") + ".", "success");
+      } else if (hasUsedAllAttempts) {
+        setStatusMessage("You have no attempts left. The target was " + data.selectedWord.display + englishSuffix + ".", "warning");
+      } else {
+        setStatusMessage("Guess " + completedAttemptNumber + " scored. Try again.");
+      }
+
+      attemptStatus.textContent = gameIsOver ? "Activity complete" : "Attempt " + (submittedGuesses.length + 1) + " of " + data.maximumAttempts;
+      renderBoard();
+    }
+
+    document.getElementById("restart").addEventListener("click", handleRestart);
+
+    ${config.hintButtonEnabled ? `
+    const hintBtn = document.getElementById("hint-btn");
+    hintBtn.addEventListener("pointerdown", showHint);
+    hintBtn.addEventListener("pointerup", hideHint);
+    hintBtn.addEventListener("pointercancel", hideHint);
+    hintBtn.addEventListener("pointerleave", hideHint);
+    hintBtn.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); showHint(); }
+    });
+    hintBtn.addEventListener("keyup", (event) => {
+      if (event.key === "Enter" || event.key === " ") { hideHint(); }
+    });
+    window.addEventListener("pointerup", hideHint);
+    ` : ""}
+
+    document.addEventListener("keydown", (event) => {
+      if (event.target instanceof HTMLButtonElement) { return; }
+      if (event.key === "Backspace") { event.preventDefault(); handleDelete(); }
+      if (event.key === "Enter") { event.preventDefault(); handleSubmit(); }
+    });
+
+    renderBoard();
+    renderKeyboard();
+    `;
+
+    return documentShell({
+      title: `Wordle Activity`,
+      theme: theme,
+      body: body,
+      script: script,
+      gameStyles: WORDLE_STYLES
+    });
+  }
+
+  // =====================================================================
+  // Builder UI wiring
+  // =====================================================================
+
+  const wordListInput = document.getElementById("word-list-input");
+  const wordListErrorEl = document.getElementById("word-list-error");
+  const phonemePaletteEl = document.getElementById("phoneme-palette");
+  const targetWordSelect = document.getElementById("target-word");
+  const selectedDisplayEl = document.getElementById("selected-display");
+  const selectedEnglishEl = document.getElementById("selected-english");
+  const unitChipsEl = document.getElementById("unit-chips");
+  const difficultyOptionsEl = document.getElementById("difficulty-options");
+  const hintsEnabledInput = document.getElementById("hints-enabled");
+  const hintsToggleRow = document.getElementById("hints-toggle-row");
+  const hintButtonEnabledInput = document.getElementById("hint-button-enabled");
+  const hintButtonToggleRow = document.getElementById("hint-button-toggle-row");
+  const themeToggleBtn = document.getElementById("theme-toggle-btn");
+  const previewFrame = document.getElementById("preview-frame");
+  const downloadBtn = document.getElementById("download-btn");
+  const downloadStatusEl = document.getElementById("download-status");
+
+  let state = {
+    wordId: null,
+    difficulty: "standard",
+    hintsEnabled: true,
+    hintButtonEnabled: true,
+    theme: "light"
+  };
+
+  wordListInput.value = DEFAULT_WORD_LIST_TEXT;
+
+  // Phoneme palette: clicking inserts "symbol " at the cursor
+  PHONEMES.forEach((phoneme) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "/" + phoneme.ipaSymbol + "/";
+    btn.title = phoneme.grapheme + " as in " + phoneme.exampleWord;
+    btn.addEventListener("click", function() {
+      const start = wordListInput.selectionStart || wordListInput.value.length;
+      const end = wordListInput.selectionEnd || wordListInput.value.length;
+      const before = wordListInput.value.slice(0, start);
+      const after = wordListInput.value.slice(end);
+      const insertion = phoneme.ipaSymbol + " ";
+      wordListInput.value = before + insertion + after;
+      const cursor = start + insertion.length;
+      wordListInput.focus();
+      wordListInput.setSelectionRange(cursor, cursor);
+      refreshAll();
+    });
+    phonemePaletteEl.appendChild(btn);
+  });
+
+  // Populate the difficulty radio options
+  DIFFICULTY_ORDER.forEach((option) => {
+    const details = DIFFICULTY_DETAILS[option];
+    const label = document.createElement("label");
+    label.className = "radio-option";
+    label.innerHTML =
+      '<input type="radio" name="wordle-difficulty" value="' + option + '" ' + (option === state.difficulty ? "checked" : "") + '>' +
+      '<span><strong>' + details.label + '</strong><span class="sub">' + details.attempts + ' attempts - ' + details.description + '</span></span>';
+    difficultyOptionsEl.appendChild(label);
+  });
+
+  function currentParsedWords() {
+    const parsed = parseWordListText(wordListInput.value);
+    if (parsed.errors.length > 0) {
+      wordListErrorEl.style.display = "block";
+      wordListErrorEl.textContent = parsed.errors.join(" ");
+    } else {
+      wordListErrorEl.style.display = "none";
+      wordListErrorEl.textContent = "";
+    }
+    return parsed.words;
+  }
+
+  function rebuildTargetWordOptions(words, keepSelection) {
+    const previousWordId = state.wordId;
+    targetWordSelect.innerHTML = "";
+    words.forEach((word) => {
+      const option = document.createElement("option");
+      option.value = word.id;
+      option.textContent = word.display + " - " + word.english;
+      targetWordSelect.appendChild(option);
+    });
+
+    if (keepSelection && words.some((w) => w.id === previousWordId)) {
+      state.wordId = previousWordId;
+    } else {
+      state.wordId = words.length > 0 ? words[0].id : null;
+    }
+    targetWordSelect.value = state.wordId || "";
+  }
+
+  function renderSelectedWordInfo(words) {
+    const selectedWord = words.find((w) => w.id === state.wordId);
+    if (!selectedWord) {
+      selectedDisplayEl.textContent = "";
+      selectedEnglishEl.textContent = "";
+      unitChipsEl.innerHTML = "";
+      return;
+    }
+    selectedDisplayEl.textContent = selectedWord.display;
+    selectedEnglishEl.textContent = selectedWord.english;
+    unitChipsEl.innerHTML = "";
+    selectedWord.units.forEach((unit) => {
+      const knownPhoneme = PHONEME_BY_SYMBOL.get(unit);
+      const chip = document.createElement("span");
+      chip.className = "unit-chip";
+      chip.title = state.hintsEnabled && knownPhoneme ? (knownPhoneme.grapheme + " as in " + knownPhoneme.exampleWord) : "";
+      chip.innerHTML = "<strong>" + unit + "</strong>" + (state.hintsEnabled && knownPhoneme ? "<span>" + knownPhoneme.grapheme + "</span>" : "");
+      unitChipsEl.appendChild(chip);
+    });
+  }
+
+  function updatePreview(words) {
+    if (!state.wordId || words.length === 0) {
+      previewFrame.srcdoc = "";
+      return null;
+    }
+    const config = {
+      words: words,
+      wordId: state.wordId,
+      difficulty: state.difficulty,
+      hintsEnabled: state.hintsEnabled,
+      hintButtonEnabled: state.hintButtonEnabled
+    };
+    const html = buildStandaloneWordleHtml(config, state.theme);
+    previewFrame.srcdoc = html;
+    return html;
+  }
+
+  function refreshAll() {
+    const words = currentParsedWords();
+
+    if (words.length === 0) {
+      wordListErrorEl.style.display = "block";
+      wordListErrorEl.textContent = wordListErrorEl.textContent || "Add at least one word to the list above.";
+      targetWordSelect.innerHTML = "";
+      selectedDisplayEl.textContent = "";
+      selectedEnglishEl.textContent = "";
+      unitChipsEl.innerHTML = "";
+      previewFrame.srcdoc = "";
+      downloadStatusEl.textContent = "";
+      return;
+    }
+
+    rebuildTargetWordOptions(words, true);
+    renderSelectedWordInfo(words);
+    updatePreview(words);
+    downloadStatusEl.textContent = "";
+  }
+
+  wordListInput.addEventListener("input", function() {
+    const lowered = wordListInput.value.toLowerCase();
+    if (lowered !== wordListInput.value) {
+      const selectionStart = wordListInput.selectionStart;
+      const selectionEnd = wordListInput.selectionEnd;
+      wordListInput.value = lowered;
+      wordListInput.setSelectionRange(selectionStart, selectionEnd);
+    }
+    refreshAll();
+  });
+
+  targetWordSelect.addEventListener("change", function() {
+    state.wordId = targetWordSelect.value;
+    refreshAll();
+  });
+
+  difficultyOptionsEl.addEventListener("change", function(ev) {
+    if (ev.target && ev.target.name === "wordle-difficulty") {
+      state.difficulty = ev.target.value;
+      refreshAll();
+    }
+  });
+
+  hintsEnabledInput.addEventListener("change", function() {
+    state.hintsEnabled = hintsEnabledInput.checked;
+    refreshAll();
+  });
+  hintsToggleRow.addEventListener("click", function(ev) {
+    if (ev.target !== hintsEnabledInput) {
+      hintsEnabledInput.checked = !hintsEnabledInput.checked;
+      hintsEnabledInput.dispatchEvent(new Event("change"));
+    }
+  });
+
+  hintButtonEnabledInput.addEventListener("change", function() {
+    state.hintButtonEnabled = hintButtonEnabledInput.checked;
+    refreshAll();
+  });
+  hintButtonToggleRow.addEventListener("click", function(ev) {
+    if (ev.target !== hintButtonEnabledInput) {
+      hintButtonEnabledInput.checked = !hintButtonEnabledInput.checked;
+      hintButtonEnabledInput.dispatchEvent(new Event("change"));
+    }
+  });
+
+  themeToggleBtn.addEventListener("click", function() {
+    state.theme = state.theme === "light" ? "dark" : "light";
+    themeToggleBtn.textContent = state.theme === "light" ? "Light" : "Dark";
+    refreshAll();
+  });
+
+  // Non-cryptographic string hash (FNV-1a, 32-bit) used only so the
+  // downloaded filename doesn't spell out the target word - the filename
+  // is player-visible before they've solved the puzzle, so it must never
+  // contain the word's letters/phonemes.
+  function hashStringToHex(input) {
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < input.length; i += 1) {
+      hash ^= input.charCodeAt(i);
+      hash = Math.imul(hash, 0x01000193);
+    }
+    return (hash >>> 0).toString(16).padStart(8, "0");
+  }
+
+  downloadBtn.addEventListener("click", function() {
+    const words = currentParsedWords();
+    const html = updatePreview(words);
+    if (!html) { return; }
+    const selectedWord = words.find((w) => w.id === state.wordId);
+    const filename = "wordle-" + (selectedWord ? hashStringToHex(selectedWord.id) : "activity") + ".html";
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    window.setTimeout(function() {
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    }, 1000);
+
+    downloadStatusEl.textContent = "Downloaded " + filename + ". Open it in a browser to test the learner activity.";
+  });
+
+  // Initial render
+  refreshAll();
+
+})();
+</script>
+
+</body>
+</html>
