@@ -144,14 +144,6 @@ The main landing page for the collection of LMS tools.
 
 ---
 
-## 🖼️ Supporting Images
-
-The repository also contains image assets used by the interactive activities:
-
-- [`courtroom.avif`](https://github.com/TonyLatrobe/lms/blob/main/courtroom.avif)
-- [`cubicle.avif`](https://github.com/TonyLatrobe/lms/blob/main/cubicle.avif)
-- [`escaperoom.avif`](https://github.com/TonyLatrobe/lms/blob/main/escaperoom.avif)
-- [`treasurehunt.avif`](https://github.com/TonyLatrobe/lms/blob/main/treasurehunt.avif)
 
 ---
 
