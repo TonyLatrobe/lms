@@ -117,7 +117,7 @@
   <p><code>thin</code> - a plain English word. It's split letter-by-letter and the word itself is shown as the hint.</p>
   <p><code>&theta; &#618; n = thin</code> - a phoneme sequence (space-separated IPA symbols, click the palette below the box to build one), with the English meaning after the <code>=</code> shown as the hint.</p>
   <p>A line starting with <code>#</code> is a comment/section heading and is ignored (the pre-populated list uses these to group words by phoneme count).</p>
-  <p>Choose the Difficulty (this controls the grid size and which directions words can be hidden in), whether to show English words to the student, and use Regenerate Puzzle to get a new random layout at the same difficulty and word list. Note: only as many words as fit the grid will be placed - if your list is long, trim it down or the status line under the word list will tell you how many were left out.</p>
+  <p>Choose the Difficulty (this controls the grid size and which directions words can be hidden in), the Word List Display mode (phoneme spelling or English word - never both while a word is still being searched for), and use Regenerate Puzzle to get a new random layout at the same difficulty and word list. Note: only as many words as fit the grid will be placed - if your list is long, trim it down or the status line under the word list will tell you how many were left out.</p>
   <p>The Live Preview on the right is the exact activity that gets downloaded. Students find words by clicking and dragging from one end of a word to the other (either direction works). They also get a <strong>Hint</strong> button - pressing and holding it briefly reveals the location of one un-found word on the grid.</p>
   <p>The <strong>Show Answer Key</strong> button below is for you only - it is never included in the downloaded file. Save or print it before you close this tab, because it can't be recovered afterwards unless your word list, difficulty and seed are all still exactly the same.</p>
 
@@ -143,13 +143,11 @@
         <div id="difficulty-options"></div>
       </fieldset>
 
-      <div class="toggle-row" id="hints-toggle-row">
-        <span>
-          <strong>Show English words</strong>
-          <span class="sub" style="display:block; color:#999; font-size:0.85rem; margin-top:2px;">Display each word's hint text in the sidebar.</span>
-        </span>
-        <input type="checkbox" id="hints-enabled" checked style="margin-top:4px; width:20px; height:20px;">
-      </div>
+      <fieldset style="margin-top: 1.2rem;">
+        <legend>Word List Display</legend>
+        <p class="help-text">What the sidebar shows for each word while it's still being searched for. Once found, both are shown together as confirmation.</p>
+        <div id="display-mode-options"></div>
+      </fieldset>
 
       <div class="toggle-row" id="hint-button-toggle-row">
         <span>
@@ -632,7 +630,7 @@
 
     const data = {
       puzzle: puzzle,
-      hintsEnabled: config.hintsEnabled,
+      displayMode: config.displayMode,
       hintButtonEnabled: config.hintButtonEnabled,
       words: placedWords
     };
@@ -830,17 +828,17 @@
         item.setAttribute("aria-label", word.display + (isFound ? ", found" : ", not found"));
 
         const label = document.createElement("strong");
-        label.textContent = word.display;
+        label.textContent = isFound
+          ? word.display
+          : (data.displayMode === "english" ? word.english : word.display);
         item.appendChild(label);
 
-        if (data.hintsEnabled) {
+        if (isFound) {
           const hintEl = document.createElement("span");
           hintEl.className = "english";
           hintEl.textContent = word.english;
           item.appendChild(hintEl);
-        }
 
-        if (isFound) {
           const foundLabel = document.createElement("span");
           foundLabel.className = "found-label";
           foundLabel.textContent = "Found";
@@ -901,7 +899,7 @@
           setStatusMessage("Well done! You found every word.", "success");
         } else if (matchedWord) {
           setStatusMessage(
-            "Found " + matchedWord.display + (data.hintsEnabled ? " - " + matchedWord.english : "") + ".",
+            "Found " + matchedWord.display + " - " + matchedWord.english + ".",
             "success"
           );
         } else {
@@ -1052,8 +1050,7 @@
   const placementStatusEl = document.getElementById("placement-status");
   const phonemePaletteEl = document.getElementById("phoneme-palette");
   const difficultyOptionsEl = document.getElementById("difficulty-options");
-  const hintsEnabledInput = document.getElementById("hints-enabled");
-  const hintsToggleRow = document.getElementById("hints-toggle-row");
+  const displayModeOptionsEl = document.getElementById("display-mode-options");
   const hintButtonEnabledInput = document.getElementById("hint-button-enabled");
   const hintButtonToggleRow = document.getElementById("hint-button-toggle-row");
   const themeToggleBtn = document.getElementById("theme-toggle-btn");
@@ -1070,15 +1067,32 @@
   const answerKeyPrintBtn = document.getElementById("answer-key-print-btn");
   const answerKeyPrintArea = document.getElementById("answer-key-print-area");
 
+  const DISPLAY_MODE_DETAILS = {
+    phoneme: { label: "Phoneme spelling", description: "Sidebar shows the phoneme sequence to find, e.g. \u201cb \u025b d\u201d." },
+    english: { label: "English word", description: "Sidebar shows only the English word, e.g. \u201cbed\u201d - students must work out the phoneme spelling themselves." }
+  };
+  const DISPLAY_MODE_ORDER = ["phoneme", "english"];
+
   let state = {
     difficulty: "standard",
-    hintsEnabled: true,
+    displayMode: "phoneme",
     hintButtonEnabled: true,
     seed: 260724,
     theme: "light"
   };
 
   wordListInput.value = DEFAULT_WORD_LIST_TEXT;
+
+  // Populate the display-mode radio options
+  DISPLAY_MODE_ORDER.forEach((option) => {
+    const details = DISPLAY_MODE_DETAILS[option];
+    const label = document.createElement("label");
+    label.className = "radio-option";
+    label.innerHTML =
+      '<input type="radio" name="display-mode" value="' + option + '" ' + (option === state.displayMode ? "checked" : "") + '>' +
+      '<span><strong>' + details.label + '</strong><span class="sub">' + details.description + '</span></span>';
+    displayModeOptionsEl.appendChild(label);
+  });
 
   // Phoneme palette: clicking inserts "symbol " at the cursor
   PHONEMES.forEach((phoneme) => {
@@ -1146,7 +1160,7 @@
     const config = {
       difficulty: state.difficulty,
       seed: state.seed,
-      hintsEnabled: state.hintsEnabled,
+      displayMode: state.displayMode,
       hintButtonEnabled: state.hintButtonEnabled,
       words: result.words
     };
@@ -1171,14 +1185,10 @@
     }
   });
 
-  hintsEnabledInput.addEventListener("change", function() {
-    state.hintsEnabled = hintsEnabledInput.checked;
-    refreshAll();
-  });
-  hintsToggleRow.addEventListener("click", function(ev) {
-    if (ev.target !== hintsEnabledInput) {
-      hintsEnabledInput.checked = !hintsEnabledInput.checked;
-      hintsEnabledInput.dispatchEvent(new Event("change"));
+  displayModeOptionsEl.addEventListener("change", function(ev) {
+    if (ev.target && ev.target.name === "display-mode") {
+      state.displayMode = ev.target.value;
+      refreshAll();
     }
   });
 
