@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Search Builder (Any Language)</title>
+<style>
+  body { background:#111; color:#eee; font-family: Arial, Helvetica, sans-serif; margin:0; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  h1.page-title {
+    margin-bottom: 1.5rem; font-weight: 900; font-size: clamp(1.8rem, 4vw, 3rem);
+    letter-spacing: 1px; color: #8cc4ea; text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(140, 196, 234, 0.6), 0 0 20px rgba(140, 196, 234, 0.4), 0 0 30px rgba(140, 196, 234, 0.25);
+  }
+  h2.section-title {
+    margin: 1.5rem 0 1rem; font-weight: 900; font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+    color: #8cc4ea; text-shadow: 0 0 8px rgba(140, 196, 234, 0.5), 0 0 16px rgba(140, 196, 234, 0.3);
+  }
+  hr { border-color:#444; margin: 24px 0; }
+  code { background:#1b1b1b; padding: 1px 6px; border-radius: 4px; }
+  .builder-grid { display: grid; grid-template-columns: 22rem minmax(0,1fr); gap: 1.5rem; align-items: start; }
+  @media (max-width: 60rem) { .builder-grid { grid-template-columns: 1fr; } }
+  .panel { border: 1px solid #333; border-radius: 12px; background: #1b1b1b; padding: 20px; }
+  fieldset { border: none; padding: 0; margin: 0; }
+  legend { font-weight: 700; padding: 0; margin-bottom: 4px; }
+  .help-text { color:#999; font-size: 0.85rem; margin: 0 0 10px; }
+  label.field-label { display:block; font-weight:700; margin-bottom: 4px; }
+  select#language-preset {
+    width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px;
+    border: 1px solid #555; background: #111; color: #eee; font-size: 0.95rem;
+  }
+  textarea#word-list-input {
+    width: 100%; box-sizing: border-box; min-height: 220px; padding: 10px; border-radius: 8px;
+    border: 1px solid #555; background: #111; color: #eee; font-size: 0.9rem; font-family: monospace;
+    resize: vertical;
+  }
+  #word-list-error {
+    display:none; margin-top: 8px; padding: 8px 10px; border-radius: 6px;
+    background:#3a1414; border:1px solid #a33; color:#ffb3b3; font-size: 0.85rem;
+  }
+  #placement-status {
+    margin-top: 8px; padding: 8px 10px; border-radius: 6px;
+    background:#161616; border:1px solid #333; color:#9fd0ef; font-size: 0.85rem;
+  }
+  .radio-option {
+    display: flex; gap: 10px; align-items: flex-start; cursor: pointer;
+    border: 1px solid #333; border-radius: 10px; padding: 10px; margin-bottom: 8px; background:#161616;
+  }
+  .radio-option:hover { border-color:#8cc4ea; background:#1e2733; }
+  .radio-option input { margin-top: 3px; }
+  .radio-option strong { display:block; }
+  .radio-option span.sub { display:block; color:#999; font-size:0.85rem; margin-top:2px; }
+  .toggle-row {
+    display:flex; justify-content: space-between; align-items:flex-start; gap: 10px;
+    border: 1px solid #333; border-radius: 10px; padding: 12px; margin-top: 1.2rem; background:#161616; cursor:pointer;
+  }
+  .toggle-row:hover { border-color:#8cc4ea; background:#1e2733; }
+  .seed-box {
+    margin-top: 1.2rem; border: 1px solid #333; border-radius: 10px; padding: 14px; background:#161616;
+  }
+  .seed-box p { margin: 0; color:#999; font-size:0.85rem; }
+  .seed-box .seed-value { margin-top: 4px; font-family: monospace; font-size: 1.2rem; font-weight: 700; color:#8cc4ea; }
+  button.secondary-btn {
+    margin-top: 12px; width: 100%; padding: 10px 16px; font-size: 0.95rem; font-weight: 700;
+    border-radius: 8px; border: 1px solid #555; background: #161616; color:#eee; cursor: pointer;
+  }
+  button.secondary-btn:hover { border-color:#8cc4ea; background:#1e2733; }
+  button.primary-btn {
+    margin-top: 1.5rem; width: 100%; padding: 12px 20px; font-size: 1rem; font-weight: 800;
+    border-radius: 8px; border: none; background: #245d8a; color: #fff; cursor: pointer;
+  }
+  button.primary-btn:hover { background: #1c496d; }
+  button.answer-btn {
+    margin-top: 12px; width: 100%; padding: 10px 16px; font-size: 0.95rem; font-weight: 800;
+    border-radius: 8px; border: 1px solid #a33; background: #2a1414; color:#ffb3b3; cursor: pointer;
+  }
+  button.answer-btn:hover { background: #3a1414; }
+  #download-status { margin-top: 10px; min-height: 1.3rem; color:#9fd0ef; font-size: 0.9rem; }
+  .preview-panel { border: 1px solid #333; border-radius: 12px; background:#1b1b1b; padding: 16px; }
+  .preview-panel iframe { width: 100%; min-height: 900px; border: 1px solid #333; border-radius: 8px; background:#fff; }
+  .theme-toggle-btn { padding: 8px 14px; border-radius: 8px; border:1px solid #555; background:#161616; color:#eee; cursor:pointer; }
+
+  /* ---- Answer key panel (builder page only, never generated) ---- */
+  #answer-key-panel {
+    display:none; margin-top: 24px; border: 2px solid #a33; border-radius: 12px; background:#1b1414; padding: 20px;
+  }
+  #answer-key-panel h2 { margin-top:0; color:#ff8a8a; }
+  #answer-key-warning {
+    margin: 0 0 14px; padding: 10px 12px; border-radius: 6px; background:#3a1414; border:1px solid #a33; color:#ffcccc; font-size:0.9rem; font-weight:700;
+  }
+  #answer-key-grid { display:grid; gap:2px; margin: 0 auto 16px; width: min(100%, 34rem); }
+  .ak-cell { display:grid; aspect-ratio:1; place-items:center; border:1px solid #444; border-radius:4px; background:#222; color:#eee; font-weight:800; font-size:0.85rem; }
+  .ak-cell[data-word-index] { color:#111; }
+  #answer-key-list { list-style:none; padding:0; margin:0; display:grid; gap:6px; grid-template-columns: repeat(auto-fill, minmax(11rem,1fr)); }
+  #answer-key-list li { border:1px solid #444; border-radius:6px; padding:8px 10px; background:#161616; font-size:0.85rem; }
+  #answer-key-list li .swatch { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:middle; }
+  #answer-key-print-btn { margin-top: 14px; }
+  #not-fit-note { margin-top: 10px; color:#f0bd61; font-size:0.85rem; }
+
+  @media print {
+    body > *:not(#answer-key-print-area) { display: none !important; }
+    #answer-key-print-area { display:block !important; }
+  }
+  #answer-key-print-area { display:none; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ================= INTRO / INSTRUCTIONS ================= -->
+  <h1 class="page-title">Word Search Builder (Any Language)</h1>
+
+  <p><strong>This tool builds a mental-translation Word Search: students see an English word, have to think of its equivalent in another language, then find that foreign spelling hidden in the grid.</strong> It works for any language or script - Chinese, Japanese, Korean, French, Spanish, Italian, German, and more. No accounts, no server - it downloads as one self-contained HTML file.</p>
+  <p>Pick a <strong>Language example</strong> below to see the format for that language, or write your own list. Each line is:</p>
+  <p><code>cat = gatto</code> - <strong>English on the left</strong> of <code>=</code> is the prompt shown to students. <strong>The foreign word on the right</strong> is what's actually hidden in the grid, split into one cell per character - students have to know or work out that spelling before they can find it.</p>
+  <p><code>tiger = 老虎</code> - multi-character foreign words split one character per cell too (老, then 虎). Single-character words (e.g. <code>cat = 猫</code>) work fine and can be found with a single tap.</p>
+  <p>A line starting with <code>#</code> is a comment/section heading and is ignored - useful for grouping your list (e.g. "# animals", "# colours").</p>
+  <p>Choose the Difficulty (this controls the grid size and which directions words can be hidden in), the Word List Display mode - <strong>English only</strong> (the real challenge: "cat"), <strong>Foreign word only</strong> (removes the translation step: "gatto"), or <strong>Both</strong> together (easiest, for vocabulary review: "gatto - cat") - and use Regenerate Puzzle to get a new random layout at the same difficulty and word list. Note: only as many words as fit the grid will be placed - if your list is long, trim it down or the status line under the word list will tell you how many were left out.</p>
+  <p>The Live Preview on the right is the exact activity that gets downloaded. Students find words by clicking and dragging from one end of a word to the other (either direction works, and single-character words can be tapped once). They also get a <strong>Hint</strong> button - pressing and holding it briefly reveals the location of one un-found word on the grid.</p>
+  <p>The <strong>Show Answer Key</strong> button below is for you only - it is never included in the downloaded file. Save or print it before you close this tab, because it can't be recovered afterwards unless your word list, difficulty and seed are all still exactly the same.</p>
+
+  <hr>
+
+  <!-- ================= BUILDER ================= -->
+  <h2 class="section-title">Configure the Word Search</h2>
+
+  <div class="builder-grid">
+    <div class="panel">
+      <label class="field-label" for="language-preset">Language example</label>
+      <p class="help-text">Loads a short example list for that language into the Word List below (replaces the current list).</p>
+      <select id="language-preset"></select>
+
+      <label class="field-label" for="word-list-input" style="margin-top:1.2rem;">Word List (one per line)</label>
+      <p class="help-text"><code>english = foreign word</code>, or <code># comment</code>. The foreign word is hidden in the grid; English is the prompt.</p>
+      <textarea id="word-list-input" spellcheck="false"></textarea>
+      <div id="word-list-error"></div>
+      <div id="placement-status"></div>
+
+      <fieldset style="margin-top: 1.2rem;">
+        <legend>Difficulty</legend>
+        <p class="help-text">Difficulty changes the grid size and allowed directions.</p>
+        <div id="difficulty-options"></div>
+      </fieldset>
+
+
+      <fieldset style="margin-top: 1.2rem;">
+        <legend>Word List Display</legend>
+        <p class="help-text">What the sidebar shows while a word is still being searched for - e.g. "cat" vs "gatto" vs "gatto - cat". Once found, both are always shown together as confirmation.</p>
+        <div id="display-mode-options"></div>
+      </fieldset>
+
+      <div class="toggle-row" id="hint-button-toggle-row">
+        <span>
+          <strong>Include Hint button</strong>
+          <span class="sub" style="display:block; color:#999; font-size:0.85rem; margin-top:2px;">Adds a press-and-hold Hint button that briefly reveals where one word is. Turn off to leave it out of the downloaded activity entirely.</span>
+        </span>
+        <input type="checkbox" id="hint-button-enabled" checked style="margin-top:4px; width:20px; height:20px;">
+      </div>
+
+      <div class="toggle-row" id="theme-toggle-row" style="cursor:default;">
+        <span>
+          <strong>Theme</strong>
+          <span class="sub" style="display:block; color:#999; font-size:0.85rem; margin-top:2px;">Applied to the preview and the downloaded file.</span>
+        </span>
+        <button type="button" class="theme-toggle-btn" id="theme-toggle-btn">Light</button>
+      </div>
+
+      <div class="seed-box">
+        <p>Puzzle seed</p>
+        <div class="seed-value" id="seed-value"></div>
+        <button type="button" class="secondary-btn" id="regenerate-btn">Regenerate puzzle</button>
+      </div>
+
+      <button type="button" class="primary-btn" id="download-btn">Download HTML</button>
+      <p id="download-status" aria-live="polite"></p>
+
+      <button type="button" class="answer-btn" id="answer-key-btn">Show Answer Key (builder only)</button>
+    </div>
+
+    <div class="preview-panel">
+      <p style="text-transform:uppercase; font-size:0.75rem; letter-spacing:0.06em; color:#999; margin:0;">Learner view</p>
+      <h3 style="margin: 4px 0 4px;">Live activity preview</h3>
+      <p style="color:#999; font-size:0.85rem; margin:0 0 10px;">This is the exact activity included in the downloaded file (Hint button included, Answer Key is not).</p>
+      <iframe id="preview-frame" title="Playable Word Search preview" sandbox="allow-scripts"></iframe>
+    </div>
+  </div>
+
+  <!-- ================= ANSWER KEY (builder page only - never generated) ================= -->
+  <div id="answer-key-panel">
+    <h2>Answer Key</h2>
+    <p id="answer-key-warning">This is only visible here in the builder. It is not included in the downloaded HTML file and cannot be regenerated later unless your word list, difficulty and seed are unchanged. Save or print it now.</p>
+    <div id="answer-key-grid"></div>
+    <ul id="answer-key-list"></ul>
+    <p id="not-fit-note"></p>
+    <button type="button" class="secondary-btn" id="answer-key-print-btn">Print Answer Key</button>
+  </div>
+
+</div>
+
+<!-- Hidden print-only area, populated just before printing -->
+<div id="answer-key-print-area"></div>
+
+<script>
+(function() {
+  "use strict";
+
+  // =====================================================================
+  // Language example presets. Each line is "English = Foreign word" - the
+  // foreign word (right of "=") is what gets hidden in the grid, split
+  // into one cell per character; the English word (left of "=") is the
+  // prompt shown to students, who must mentally translate it before they
+  // can find its spelling in the puzzle.
+  // =====================================================================
+
+  const LANGUAGE_PRESETS = {
+    chinese: {
+      label: "Chinese (Simplified)",
+      text: [
+        "# English = Chinese - single characters split fine on their own",
+        "cat = 猫",
+        "dog = 狗",
+        "bird = 鸟",
+        "fish = 鱼",
+        "horse = 马",
+        "# multi-character words split one character per cell",
+        "tiger = 老虎",
+        "panda = 熊猫",
+        "rabbit = 兔子"
+      ].join("\n")
+    },
+    japanese: {
+      label: "Japanese (Hiragana)",
+      text: [
+        "# English = Japanese hiragana, one kana per cell",
+        "cat = ねこ",
+        "dog = いぬ",
+        "bird = とり",
+        "fish = さかな",
+        "horse = うま",
+        "rabbit = うさぎ",
+        "# kanji works the same way, one character per cell",
+        "cat (kanji) = 猫",
+        "dog (kanji) = 犬"
+      ].join("\n")
+    },
+    korean: {
+      label: "Korean",
+      text: [
+        "# English = Korean - each syllable block is one character/cell",
+        "cat = 고양이",
+        "dog = 개",
+        "bird = 새",
+        "fish = 물고기",
+        "horse = 말",
+        "rabbit = 토끼"
+      ].join("\n")
+    },
+    french: {
+      label: "French",
+      text: [
+        "# English = French - split letter-by-letter, accents count as one letter",
+        "cat = chat",
+        "dog = chien",
+        "bird = oiseau",
+        "fish = poisson",
+        "horse = cheval",
+        "rabbit = lapin"
+      ].join("\n")
+    },
+    spanish: {
+      label: "Spanish",
+      text: [
+        "# English = Spanish - split letter-by-letter",
+        "cat = gato",
+        "dog = perro",
+        "bird = pájaro",
+        "fish = pez",
+        "horse = caballo",
+        "rabbit = conejo"
+      ].join("\n")
+    },
+    italian: {
+      label: "Italian",
+      text: [
+        "# English = Italian - split letter-by-letter",
+        "cat = gatto",
+        "dog = cane",
+        "bird = uccello",
+        "fish = pesce",
+        "horse = cavallo",
+        "rabbit = coniglio"
+      ].join("\n")
+    },
+    german: {
+      label: "German",
+      text: [
+        "# English = German - split letter-by-letter",
+        "cat = Katze",
+        "dog = Hund",
+        "bird = Vogel",
+        "fish = Fisch",
+        "horse = Pferd",
+        "rabbit = Hase"
+      ].join("\n")
+    },
+    custom: {
+      label: "Blank / write my own",
+      text: [
+        "# Write one word per line below, as: English = Foreign word",
+        "# The foreign word (right of =) is hidden in the grid.",
+        "# The English word (left of =) is the prompt shown to students.",
+        "# e.g. cat = gatto"
+      ].join("\n")
+    }
+  };
+
+  const LANGUAGE_ORDER = ["chinese", "japanese", "korean", "french", "spanish", "italian", "german", "custom"];
+
+  const DEFAULT_WORD_LIST_TEXT = LANGUAGE_PRESETS.french.text;
+
+  const DIFFICULTY_DETAILS = {
+    easy: { label: "Easy", attempts: 8, description: "8 \u00d7 8 grid using horizontal and vertical words." },
+    standard: { label: "Standard", attempts: 6, description: "10 \u00d7 10 grid that also includes diagonal words." },
+    challenging: { label: "Challenging", attempts: 4, description: "12 \u00d7 12 grid with forward, reverse, and upward words." }
+  };
+  const DIFFICULTY_ORDER = ["easy", "standard", "challenging"];
+
+  // =====================================================================
+  // Word-list parsing
+  // Each line: "#..." comment, plain word ("cat"), or "units = hint".
+  // =====================================================================
+
+  function parseWordListText(text) {
+    const rawLines = text.split("\n").map((l) => l.trim());
+    const words = [];
+    const errors = [];
+
+    rawLines.forEach((line, index) => {
+      if (line.length === 0) { return; }
+      if (line.startsWith("#")) { return; }
+
+      let englishPrompt = "";
+      let foreignPart = line;
+
+      const eqIndex = line.indexOf("=");
+      if (eqIndex !== -1) {
+        englishPrompt = line.slice(0, eqIndex).trim();
+        foreignPart = line.slice(eqIndex + 1).trim();
+      }
+
+      if (!foreignPart) {
+        errors.push("Line " + (index + 1) + " is empty.");
+        return;
+      }
+
+      const units = foreignPart.includes(" ")
+        ? foreignPart.split(/\s+/).filter((u) => u.length > 0)
+        : Array.from(foreignPart);
+
+      if (units.length < 1) {
+        errors.push("Line " + (index + 1) + " (\"" + line + "\") needs at least 1 character.");
+        return;
+      }
+
+      const meaning = englishPrompt || foreignPart.replace(/\s+/g, "");
+
+      words.push({
+        id: "w" + index + "-" + foreignPart.replace(/\s+/g, "").toLowerCase(),
+        meaning: meaning,
+        display: foreignPart.replace(/\s+/g, " "),
+        units: units
+      });
+    });
+
+    return { words: words, errors: errors };
+  }
+
+  // =====================================================================
+  // Deterministic Word Search generation (ported from lib/word-search.ts,
+  // generalised from fixed phonemeIds to arbitrary unit strings)
+  // =====================================================================
+
+  const DIRECTIONS = {
+    easy: [[0, 1], [1, 0]],
+    standard: [[0, 1], [1, 0], [1, 1], [1, -1]],
+    challenging: [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]]
+  };
+  const GRID_SIZES = { easy: 8, standard: 10, challenging: 12 };
+
+  function createSeededRandom(seed) {
+    let state = Math.abs(Math.trunc(seed)) % 2147483647;
+    if (state === 0) { state = 1; }
+    return function() {
+      state = (state * 16807) % 2147483647;
+      return (state - 1) / 2147483646;
+    };
+  }
+
+  function randomIndex(random, arrayLength) {
+    return Math.floor(random() * arrayLength);
+  }
+
+  function generateWordSearch(config, words) {
+    const gridSize = GRID_SIZES[config.difficulty];
+    const allowedDirections = DIRECTIONS[config.difficulty];
+    const random = createSeededRandom(config.seed);
+
+    const grid = Array.from({ length: gridSize }, function() {
+      return Array(gridSize).fill(null);
+    });
+
+    const placements = [];
+    const unplacedWordIds = [];
+
+    for (const word of words) {
+      if (word.units.length > gridSize) {
+        unplacedWordIds.push(word.id);
+        continue;
+      }
+
+      let wordWasPlaced = false;
+
+      for (let attempt = 0; attempt < 600 && !wordWasPlaced; attempt += 1) {
+        const direction = allowedDirections[randomIndex(random, allowedDirections.length)];
+        const rowChange = direction[0];
+        const columnChange = direction[1];
+
+        const startRow = randomIndex(random, gridSize);
+        const startColumn = randomIndex(random, gridSize);
+
+        const endRow = startRow + rowChange * (word.units.length - 1);
+        const endColumn = startColumn + columnChange * (word.units.length - 1);
+
+        const endsOutsideGrid = endRow < 0 || endRow >= gridSize || endColumn < 0 || endColumn >= gridSize;
+        if (endsOutsideGrid) { continue; }
+
+        const coordinates = word.units.map(function(_, unitPosition) {
+          return {
+            row: startRow + rowChange * unitPosition,
+            column: startColumn + columnChange * unitPosition
+          };
+        });
+
+        const placementFits = coordinates.every(function(coord, unitPosition) {
+          const existingUnit = grid[coord.row][coord.column];
+          const requiredUnit = word.units[unitPosition];
+          return existingUnit === null || existingUnit === requiredUnit;
+        });
+
+        if (!placementFits) { continue; }
+
+        coordinates.forEach(function(coord, unitPosition) {
+          grid[coord.row][coord.column] = word.units[unitPosition];
+        });
+
+        placements.push({ wordId: word.id, coordinates: coordinates });
+        wordWasPlaced = true;
+      }
+
+      if (!wordWasPlaced) {
+        unplacedWordIds.push(word.id);
+      }
+    }
+
+    const fillerUnitsSet = new Set();
+    words.forEach((word) => word.units.forEach((u) => fillerUnitsSet.add(u)));
+    const fillerUnits = Array.from(fillerUnitsSet);
+
+    const completedGrid = grid.map(function(row) {
+      return row.map(function(cell) {
+        return cell !== null ? cell : fillerUnits[randomIndex(random, fillerUnits.length)];
+      });
+    });
+
+    return { grid: completedGrid, placements: placements, seed: config.seed, unplacedWordIds: unplacedWordIds };
+  }
+
+  // =====================================================================
+  // Standalone document builder (ported from lib/standalone.ts)
+  // =====================================================================
+
+  function serializeForScript(value) {
+    return JSON.stringify(value)
+      .split("<").join("\\u003c")
+      .split(">").join("\\u003e")
+      .split("&").join("\\u0026");
+  }
+
+  function documentShell(opts) {
+    const title = opts.title;
+    const theme = opts.theme;
+    const body = opts.body;
+    const script = opts.script;
+    const gameStyles = opts.gameStyles;
+
+    return `<!doctype html>
+<html lang="en" data-theme="${theme}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="${theme}">
+  <title>${title}</title>
+  <style>
+    :root {
+      --background: #f3f7fb; --surface: #fcfdff; --soft: #e4edf6; --text: #17233a;
+      --muted: #53657a; --border: #c6d5e4; --control-border: #8195aa; --accent: #245d8a;
+      --action: #245d8a; --action-hover: #1c496d; --action-text: #ffffff; --focus: #245d8a;
+      --correct: #08734f; --present: #9a5b00; --absent: #65767b; --hint: #6d28d9;
+    }
+    [data-theme="dark"] {
+      --background: #111c2e; --surface: #1b2a41; --soft: #263a56; --text: #f4f7fb;
+      --muted: #b9c7d8; --border: #405873; --control-border: #6b85a2; --accent: #8cc4ea;
+      --action: #317aab; --action-hover: #285f88; --action-text: #ffffff; --focus: #8cc4ea;
+      --correct: #64d7b0; --present: #f0bd61; --absent: #a6b4b8; --hint: #c4b5fd;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--background); }
+    body { min-height: 100vh; margin: 0; background: var(--background); color: var(--text); font-family: Arial, Helvetica, sans-serif; line-height: 1.5; }
+    button { font: inherit; }
+    button:focus-visible, .skip-link:focus { outline: 3px solid var(--focus); outline-offset: 3px; }
+    .skip-link { position: fixed; top: -5rem; left: 1rem; z-index: 10; padding: 0.65rem 1rem; background: var(--text); color: var(--surface); font-weight: 700; }
+    .skip-link:focus { top: 1rem; }
+    .app { width: min(100% - 2rem, 70rem); margin: 0 auto; padding: 1.5rem 0 2.5rem; }
+    .brand { margin: 0 0 1rem; color: var(--accent); font-size: 1.1rem; font-weight: 800; }
+    .panel { overflow: hidden; border: 1px solid var(--border); border-radius: 0.75rem; background: var(--surface); }
+    .panel-header { padding: clamp(1.2rem, 4vw, 2rem); border-bottom: 1px solid var(--border); background: var(--soft); }
+    .eyebrow { margin: 0 0 0.35rem; color: var(--accent); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(1.8rem, 5vw, 2.8rem); line-height: 1.1; }
+    .lede { max-width: 48rem; margin: 0.7rem 0 0; color: var(--muted); }
+    .game { padding: clamp(1rem, 4vw, 2rem); }
+    .status-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; }
+    .status { margin: 0; color: var(--muted); font-weight: 700; }
+    .status-buttons { display:flex; gap:0.5rem; flex-wrap:wrap; }
+    .restart, .hint-btn { border: 1px solid var(--control-border); border-radius: 0.4rem; padding: 0.55rem 0.8rem; background: var(--surface); color: var(--text); cursor: pointer; font-weight: 700; }
+    .restart:hover { border-color: var(--accent); background: var(--soft); }
+    .hint-btn { border-color: var(--hint); color: var(--hint); }
+    .hint-btn:hover, .hint-btn:active { background: var(--soft); }
+    .message { min-height: 3rem; margin: 1rem 0; border-left: 4px solid var(--accent); padding: 0.7rem 0.85rem; background: var(--soft); font-weight: 700; }
+    .message[data-tone="success"] { border-color: var(--correct); }
+    .message[data-tone="warning"] { border-color: var(--present); }
+    .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .footer-note { margin: 1rem 0 0; color: var(--muted); font-size: 0.82rem; text-align: center; }
+    ${gameStyles}
+    @media (max-width: 36rem) {
+      .app { width: min(100% - 1rem, 70rem); padding-top: 0.5rem; }
+      .panel { border-radius: 0.5rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#activity">Skip to activity</a>
+  <main class="app" id="activity">
+    <p class="brand"></p>
+    ${body}
+  </main>
+  <script>
+    "use strict";
+    ${script}
+  <\/script>
+</body>
+</html>`;
+  }
+
+  const WORD_SEARCH_STYLES = `
+  .search-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(12rem, 16rem); gap: 1.5rem; align-items: start; }
+  .grid-wrap { min-width: 0; overflow-x: auto; padding: 0.2rem; }
+  .search-grid { display: grid; grid-template-columns: repeat(var(--grid-size), minmax(2.2rem, 1fr)); gap: 0.25rem; width: min(100%, 38rem); min-width: max-content; margin: 0 auto; }
+  .search-cell { display: grid; aspect-ratio: 1; place-items: center; border: 1px solid var(--control-border); border-radius: 0.35rem; background: var(--surface); color: var(--text); cursor: pointer; font-size: clamp(0.7rem, 2vw, 1rem); font-weight: 800; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .search-cell:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; z-index: 2; }
+  .search-cell:hover { border-color: var(--accent); background: var(--soft); }
+  .search-cell[data-selected="true"] { border: 2px solid var(--accent); background: var(--soft); }
+  .search-cell[data-found="true"] { border-color: var(--correct); background: var(--correct); color: var(--surface); }
+  .search-cell[data-hint="true"] { border-color: var(--hint); background: var(--hint); color: #fff; }
+  .word-bank { border: 1px solid var(--border); border-radius: 0.6rem; padding: 1rem; background: var(--soft); }
+  .word-bank h2 { margin: 0; font-size: 1.15rem; }
+  .word-bank p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.85rem; }
+  .word-list { display: grid; gap: 0.6rem; margin: 1rem 0 0; padding: 0 0.3rem 0 0; list-style: none; max-height: min(50vh, 26rem); overflow-y: auto; }
+  .word-item { border: 1px solid var(--border); border-radius: 0.4rem; padding: 0.65rem; background: var(--surface); }
+  .word-item strong, .word-item span { display: block; }
+  .word-item .meaning { margin-top: 0.15rem; color: var(--muted); font-size: 0.8rem; }
+  .word-item .found-label { margin-top: 0.25rem; color: var(--correct); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+  .word-item[data-found="true"] strong { text-decoration: line-through; }
+  @media (max-width: 52rem) {
+    .search-layout { grid-template-columns: 1fr; }
+    .word-list { grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); }
+  }
+  `;
+
+  function buildStandaloneWordSearchHtml(config, theme) {
+    const puzzle = generateWordSearch(config, config.words);
+    const gridSize = puzzle.grid.length;
+    const placedWords = config.words.filter((w) => puzzle.unplacedWordIds.indexOf(w.id) === -1);
+
+    const data = {
+      puzzle: puzzle,
+      displayMode: config.displayMode,
+      hintButtonEnabled: config.hintButtonEnabled,
+      words: placedWords
+    };
+
+    const body = `
+    <section class="panel" aria-labelledby="activity-title">
+      <header class="panel-header">
+        <p class="eyebrow">Word Search</p>
+        <h1 id="activity-title">Find the hidden words</h1>
+        <p class="lede">
+          Select words by click and drag, or use arrow keys and Enter/Space. Words may appear in either
+          direction.${config.hintButtonEnabled ? ` Press and hold <strong>Hint</strong> to briefly
+          reveal where one word is.` : ""}
+        </p>
+      </header>
+      <div class="game">
+        <div class="status-row">
+          <p class="status" id="progress">0 of ${placedWords.length} words found</p>
+          <div class="status-buttons">
+            ${config.hintButtonEnabled ? `<button class="hint-btn" id="hint-btn" type="button">Hint (press &amp; hold)</button>` : ""}
+            <button class="restart" id="restart" type="button">Restart</button>
+          </div>
+        </div>
+        <p class="message" id="status-message">Select words by click and drag, or use arrow keys and Enter.</p>
+        <div class="search-layout">
+          <div class="grid-wrap">
+            <div class="search-grid" id="search-grid" role="group" aria-label="${gridSize} by ${gridSize} interactive Word Search" style="--grid-size: ${gridSize}"></div>
+          </div>
+          <aside class="word-bank" aria-labelledby="word-bank-title">
+            <h2 id="word-bank-title">Words to find</h2>
+            <p>Click and drag from one end of a word to the other.</p>
+            <ul class="word-list" id="word-list"></ul>
+          </aside>
+        </div>
+        <div class="sr-only" id="announcement" aria-live="polite"></div>
+      </div>
+    </section>`;
+
+    const script = `
+    const data = ${serializeForScript(data)};
+    const wordById = new Map(data.words.map((word) => [word.id, word]));
+
+    const foundWordIds = new Set();
+    let dragStart = null;
+    let dragCurrent = null;
+    let isDragging = false;
+    let hintCoordinates = [];
+    let keyboardAnchor = null;
+    let focusedCoordinate = { row: 0, column: 0 };
+
+    const gridElement = document.getElementById("search-grid");
+    const wordListElement = document.getElementById("word-list");
+    const progressElement = document.getElementById("progress");
+    const statusMessageElement = document.getElementById("status-message");
+    const announcement = document.getElementById("announcement");
+
+    const gridSize = data.puzzle.grid.length;
+    const cellButtons = []; // stable references, indexed [row][column] - never recreated during a drag
+
+    const BASE_STATUS_TEXT = "Select words by click and drag, or use arrow keys and Enter.";
+
+    function coordinatesAreEqual(first, second) {
+      return first.row === second.row && first.column === second.column;
+    }
+
+    function placementMatchesEndpoints(placement, start, end) {
+      const firstCoordinate = placement.coordinates[0];
+      const lastCoordinate = placement.coordinates[placement.coordinates.length - 1];
+      return (
+        (coordinatesAreEqual(firstCoordinate, start) && coordinatesAreEqual(lastCoordinate, end)) ||
+        (coordinatesAreEqual(firstCoordinate, end) && coordinatesAreEqual(lastCoordinate, start))
+      );
+    }
+
+    // Returns the straight-line path (inclusive) between two coordinates if
+    // they sit on a horizontal, vertical, or diagonal line; otherwise null.
+    function straightLinePath(start, end) {
+      const rowDelta = end.row - start.row;
+      const columnDelta = end.column - start.column;
+      const isStraight = rowDelta === 0 || columnDelta === 0 || Math.abs(rowDelta) === Math.abs(columnDelta);
+      if (!isStraight) { return null; }
+
+      const steps = Math.max(Math.abs(rowDelta), Math.abs(columnDelta));
+      const rowStep = steps === 0 ? 0 : rowDelta / steps;
+      const columnStep = steps === 0 ? 0 : columnDelta / steps;
+
+      const path = [];
+      for (let i = 0; i <= steps; i += 1) {
+        path.push({ row: start.row + rowStep * i, column: start.column + columnStep * i });
+      }
+      return path;
+    }
+
+    function isFoundCoordinate(row, column) {
+      return data.puzzle.placements.some((placement) =>
+        foundWordIds.has(placement.wordId) &&
+        placement.coordinates.some((coordinate) => coordinate.row === row && coordinate.column === column)
+      );
+    }
+
+    function isHintCoordinate(row, column) {
+      return hintCoordinates.some((c) => c.row === row && c.column === column);
+    }
+
+    function setStatusMessage(text, tone) {
+      statusMessageElement.textContent = text;
+      statusMessageElement.dataset.tone = tone || "";
+      announcement.textContent = text;
+    }
+
+    // Structural render: creates every cell button ONCE. Called only when
+    // the underlying puzzle state changes (load, restart, word found, hint
+    // toggled) - never during a live drag, so the elements the browser is
+    // actively tracking for pointer/touch events are never destroyed
+    // mid-gesture (this was the root cause of drags only registering when
+    // released between cells).
+    function renderGrid() {
+      gridElement.replaceChildren();
+      cellButtons.length = 0;
+
+      data.puzzle.grid.forEach((row, rowIndex) => {
+        const buttonRow = [];
+        row.forEach((unit, columnIndex) => {
+          const isFound = isFoundCoordinate(rowIndex, columnIndex);
+          const isHint = isHintCoordinate(rowIndex, columnIndex);
+
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "search-cell";
+          button.textContent = unit;
+          button.dataset.row = String(rowIndex);
+          button.dataset.column = String(columnIndex);
+          button.dataset.selected = "false";
+          button.dataset.found = String(isFound);
+          button.dataset.hint = String(isHint);
+          button.tabIndex = (rowIndex === focusedCoordinate.row && columnIndex === focusedCoordinate.column) ? 0 : -1;
+          button.setAttribute("aria-pressed", "false");
+          button.setAttribute("aria-label",
+            unit + ", row " + (rowIndex + 1) + ", column " + (columnIndex + 1) +
+            (isFound ? ", part of a found word" : "")
+          );
+
+          button.addEventListener("pointerdown", (event) => {
+            event.preventDefault();
+            if (event.target.hasPointerCapture && event.target.hasPointerCapture(event.pointerId)) {
+              event.target.releasePointerCapture(event.pointerId);
+            }
+            startDrag({ row: rowIndex, column: columnIndex });
+          });
+
+          button.addEventListener("focus", () => {
+            focusedCoordinate = { row: rowIndex, column: columnIndex };
+          });
+
+          button.addEventListener("keydown", (event) => handleCellKeydown(event, rowIndex, columnIndex));
+
+          buttonRow.push(button);
+          gridElement.appendChild(button);
+        });
+        cellButtons.push(buttonRow);
+      });
+
+      applySelectionHighlight();
+    }
+
+    // Lightweight highlight update: only toggles data-selected on the
+    // already-existing button elements. Never recreates DOM nodes, so it
+    // is safe to call on every pointermove during a drag.
+    function applySelectionHighlight() {
+      let path = [];
+      if (isDragging && dragStart !== null && dragCurrent !== null) {
+        path = straightLinePath(dragStart, dragCurrent) || [dragStart];
+      } else if (keyboardAnchor !== null) {
+        path = [keyboardAnchor];
+      }
+
+      for (let r = 0; r < gridSize; r += 1) {
+        for (let c = 0; c < gridSize; c += 1) {
+          const isSelected = path.some((p) => p.row === r && p.column === c);
+          const button = cellButtons[r][c];
+          button.dataset.selected = String(isSelected);
+          button.setAttribute("aria-pressed", String(isSelected));
+        }
+      }
+    }
+
+    function renderWordList() {
+      wordListElement.replaceChildren();
+
+      data.words.forEach((word) => {
+        const isFound = foundWordIds.has(word.id);
+        const item = document.createElement("li");
+        item.className = "word-item";
+        item.dataset.found = String(isFound);
+
+        const primaryLabel = (isFound || data.displayMode !== "meaning") ? word.display : word.meaning;
+        const showMeaningSpan = isFound || data.displayMode === "both";
+        const ariaLabel = showMeaningSpan && primaryLabel !== word.meaning
+          ? primaryLabel + " - " + word.meaning
+          : primaryLabel;
+        item.setAttribute("aria-label", ariaLabel + (isFound ? ", found" : ", not found"));
+
+        const label = document.createElement("strong");
+        label.textContent = primaryLabel;
+        item.appendChild(label);
+
+        if (showMeaningSpan) {
+          const hintEl = document.createElement("span");
+          hintEl.className = "meaning";
+          hintEl.textContent = word.meaning;
+          item.appendChild(hintEl);
+        }
+
+        if (isFound) {
+          const foundLabel = document.createElement("span");
+          foundLabel.className = "found-label";
+          foundLabel.textContent = "Found";
+          item.appendChild(foundLabel);
+        }
+
+        wordListElement.appendChild(item);
+      });
+
+      progressElement.textContent = foundWordIds.size + " of " + data.words.length + " words found";
+    }
+
+    function startDrag(coordinate) {
+      keyboardAnchor = null;
+      isDragging = true;
+      dragStart = coordinate;
+      dragCurrent = coordinate;
+      applySelectionHighlight();
+    }
+
+    function updateDrag(coordinate) {
+      if (coordinatesAreEqual(dragCurrent, coordinate)) { return; }
+      dragCurrent = coordinate;
+      applySelectionHighlight();
+    }
+
+    function cellAtPoint(clientX, clientY) {
+      const element = document.elementFromPoint(clientX, clientY);
+      if (!element) { return null; }
+      const cell = element.closest ? element.closest(".search-cell") : null;
+      if (!cell || !cell.dataset || cell.dataset.row === undefined) { return null; }
+      return { row: Number(cell.dataset.row), column: Number(cell.dataset.column) };
+    }
+
+    function handleWindowPointerMove(event) {
+      if (!isDragging) { return; }
+      const coordinate = cellAtPoint(event.clientX, event.clientY);
+      if (coordinate) { updateDrag(coordinate); }
+    }
+
+    function resolveSelection(start, end, announceOnFailure) {
+      const matchingPlacement = data.puzzle.placements.find((placement) =>
+        placementMatchesEndpoints(placement, start, end)
+      );
+
+      if (!matchingPlacement) {
+        setStatusMessage(BASE_STATUS_TEXT);
+        if (announceOnFailure) { announcement.textContent = "No match. Try again."; }
+      } else if (foundWordIds.has(matchingPlacement.wordId)) {
+        setStatusMessage("You have already found that word. Choose another.", "warning");
+      } else {
+        foundWordIds.add(matchingPlacement.wordId);
+        const matchedWord = wordById.get(matchingPlacement.wordId);
+
+        if (foundWordIds.size === data.words.length) {
+          setStatusMessage("Well done! You found every word.", "success");
+        } else if (matchedWord) {
+          setStatusMessage(
+            "Found " + matchedWord.display + " - " + matchedWord.meaning + ".",
+            "success"
+          );
+        } else {
+          setStatusMessage("Word found!", "success");
+        }
+      }
+
+      renderGrid();
+      renderWordList();
+    }
+
+    function finishDrag(event) {
+      if (!isDragging) { return; }
+      isDragging = false;
+
+      let end = dragCurrent;
+      if (event && typeof event.clientX === "number") {
+        const pointCoordinate = cellAtPoint(event.clientX, event.clientY);
+        if (pointCoordinate) { end = pointCoordinate; }
+      }
+
+      const start = dragStart;
+      dragStart = null;
+      dragCurrent = null;
+
+      if (!start || !end) {
+        applySelectionHighlight();
+        return;
+      }
+
+      resolveSelection(start, end, false);
+    }
+
+    // ---- Keyboard accessibility: arrow keys move focus around the grid;
+    // Enter/Space picks the first endpoint, then the second, matching the
+    // same start-or-end-first rule as mouse drag. ----
+    function handleCellKeydown(event, row, column) {
+      const moves = {
+        ArrowUp: { row: row - 1, column: column },
+        ArrowDown: { row: row + 1, column: column },
+        ArrowLeft: { row: row, column: column - 1 },
+        ArrowRight: { row: row, column: column + 1 }
+      };
+
+      if (moves[event.key]) {
+        const target = moves[event.key];
+        if (target.row >= 0 && target.row < gridSize && target.column >= 0 && target.column < gridSize) {
+          event.preventDefault();
+          cellButtons[row][column].tabIndex = -1;
+          cellButtons[target.row][target.column].tabIndex = 0;
+          cellButtons[target.row][target.column].focus();
+        }
+        return;
+      }
+
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        const coordinate = { row: row, column: column };
+
+        if (keyboardAnchor === null) {
+          keyboardAnchor = coordinate;
+          const unit = data.puzzle.grid[row][column];
+          announcement.textContent = "Selected " + unit + " as the start. Move to the word's other end and press Enter.";
+          applySelectionHighlight();
+          return;
+        }
+
+        if (coordinatesAreEqual(keyboardAnchor, coordinate)) {
+          const hasSingleCellPlacement = data.puzzle.placements.some((placement) =>
+            placement.coordinates.length === 1 && coordinatesAreEqual(placement.coordinates[0], coordinate)
+          );
+          if (hasSingleCellPlacement) {
+            keyboardAnchor = null;
+            resolveSelection(coordinate, coordinate, true);
+            return;
+          }
+          keyboardAnchor = null;
+          announcement.textContent = "Selection cleared.";
+          applySelectionHighlight();
+          return;
+        }
+
+        const start = keyboardAnchor;
+        keyboardAnchor = null;
+        resolveSelection(start, coordinate, true);
+      }
+    }
+
+    function restartGame() {
+      foundWordIds.clear();
+      isDragging = false;
+      dragStart = null;
+      dragCurrent = null;
+      keyboardAnchor = null;
+      hintCoordinates = [];
+      setStatusMessage(BASE_STATUS_TEXT);
+      renderGrid();
+      renderWordList();
+    }
+
+    ${config.hintButtonEnabled ? `
+    function showHint() {
+      if (hintCoordinates.length > 0) { return; }
+      const nextPlacement = data.puzzle.placements.find((p) => !foundWordIds.has(p.wordId));
+      if (!nextPlacement) { return; }
+      hintCoordinates = nextPlacement.coordinates;
+      renderGrid();
+    }
+
+    function hideHint() {
+      if (hintCoordinates.length === 0) { return; }
+      hintCoordinates = [];
+      renderGrid();
+    }
+    ` : ""}
+
+    document.getElementById("restart").addEventListener("click", restartGame);
+
+    window.addEventListener("pointermove", handleWindowPointerMove);
+    window.addEventListener("pointerup", finishDrag);
+    window.addEventListener("pointercancel", finishDrag);
+
+    ${config.hintButtonEnabled ? `
+    const hintBtn = document.getElementById("hint-btn");
+    hintBtn.addEventListener("pointerdown", showHint);
+    hintBtn.addEventListener("pointerup", hideHint);
+    hintBtn.addEventListener("pointercancel", hideHint);
+    hintBtn.addEventListener("pointerleave", hideHint);
+    hintBtn.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); showHint(); }
+    });
+    hintBtn.addEventListener("keyup", (event) => {
+      if (event.key === "Enter" || event.key === " ") { hideHint(); }
+    });
+    ` : ""}
+
+    renderGrid();
+    renderWordList();
+    `;
+
+    return documentShell({
+      title: `Word Search - ${config.difficulty}`,
+      theme: theme,
+      body: body,
+      script: script,
+      gameStyles: WORD_SEARCH_STYLES
+    });
+  }
+
+  // =====================================================================
+  // Builder UI wiring
+  // =====================================================================
+
+  const wordListInput = document.getElementById("word-list-input");
+  const wordListErrorEl = document.getElementById("word-list-error");
+  const placementStatusEl = document.getElementById("placement-status");
+  const languagePresetEl = document.getElementById("language-preset");
+  const difficultyOptionsEl = document.getElementById("difficulty-options");
+  const displayModeOptionsEl = document.getElementById("display-mode-options");
+  const hintButtonEnabledInput = document.getElementById("hint-button-enabled");
+  const hintButtonToggleRow = document.getElementById("hint-button-toggle-row");
+  const themeToggleBtn = document.getElementById("theme-toggle-btn");
+  const seedValueEl = document.getElementById("seed-value");
+  const regenerateBtn = document.getElementById("regenerate-btn");
+  const previewFrame = document.getElementById("preview-frame");
+  const downloadBtn = document.getElementById("download-btn");
+  const downloadStatusEl = document.getElementById("download-status");
+  const answerKeyBtn = document.getElementById("answer-key-btn");
+  const answerKeyPanel = document.getElementById("answer-key-panel");
+  const answerKeyGridEl = document.getElementById("answer-key-grid");
+  const answerKeyListEl = document.getElementById("answer-key-list");
+  const notFitNoteEl = document.getElementById("not-fit-note");
+  const answerKeyPrintBtn = document.getElementById("answer-key-print-btn");
+  const answerKeyPrintArea = document.getElementById("answer-key-print-area");
+
+  const DISPLAY_MODE_DETAILS = {
+    meaning: { label: "English only", description: "Sidebar shows only the English word, e.g. \u201ccat\u201d. Students must translate it themselves and then find its foreign spelling in the grid - this is the mental-translation challenge. Recommended default." },
+    word: { label: "Foreign word only", description: "Sidebar shows only the foreign spelling to find, e.g. \u201cchat\u201d. No translation needed - removes the challenge, useful for pure visual scanning or younger learners." },
+    both: { label: "Both", description: "Sidebar shows the English word and its foreign spelling together, e.g. \u201cchat - cat\u201d. Easiest mode - good for vocabulary review rather than testing recall." }
+  };
+  const DISPLAY_MODE_ORDER = ["meaning", "word", "both"];
+
+  let state = {
+    difficulty: "standard",
+    displayMode: "meaning",
+    hintButtonEnabled: true,
+    seed: 260724,
+    theme: "light"
+  };
+
+  wordListInput.value = DEFAULT_WORD_LIST_TEXT;
+
+  // Populate the display-mode radio options
+  DISPLAY_MODE_ORDER.forEach((option) => {
+    const details = DISPLAY_MODE_DETAILS[option];
+    const label = document.createElement("label");
+    label.className = "radio-option";
+    label.innerHTML =
+      '<input type="radio" name="display-mode" value="' + option + '" ' + (option === state.displayMode ? "checked" : "") + '>' +
+      '<span><strong>' + details.label + '</strong><span class="sub">' + details.description + '</span></span>';
+    displayModeOptionsEl.appendChild(label);
+  });
+
+  // Populate the language dropdown and wire up preset loading
+  LANGUAGE_ORDER.forEach((key) => {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = LANGUAGE_PRESETS[key].label;
+    languagePresetEl.appendChild(option);
+  });
+  languagePresetEl.value = "french";
+
+  languagePresetEl.addEventListener("change", function() {
+    const preset = LANGUAGE_PRESETS[languagePresetEl.value];
+    if (preset) {
+      wordListInput.value = preset.text;
+      refreshAll();
+    }
+  });
+
+  // Populate the difficulty radio options
+  DIFFICULTY_ORDER.forEach((option) => {
+    const details = DIFFICULTY_DETAILS[option];
+    const label = document.createElement("label");
+    label.className = "radio-option";
+    label.innerHTML =
+      '<input type="radio" name="word-search-difficulty" value="' + option + '" ' + (option === state.difficulty ? "checked" : "") + '>' +
+      '<span><strong>' + details.label + '</strong><span class="sub">' + details.description + '</span></span>';
+    difficultyOptionsEl.appendChild(label);
+  });
+
+  function currentWordsAndPuzzle() {
+    const parsed = parseWordListText(wordListInput.value);
+
+    if (parsed.errors.length > 0) {
+      wordListErrorEl.style.display = "block";
+      wordListErrorEl.textContent = parsed.errors.join(" ");
+    } else {
+      wordListErrorEl.style.display = "none";
+      wordListErrorEl.textContent = "";
+    }
+
+    if (parsed.words.length === 0) {
+      placementStatusEl.textContent = "Add at least one word to the list above.";
+      return null;
+    }
+
+    const config = { difficulty: state.difficulty, seed: state.seed, words: parsed.words };
+    const puzzle = generateWordSearch(config, parsed.words);
+    const placedCount = parsed.words.length - puzzle.unplacedWordIds.length;
+    placementStatusEl.textContent = placedCount + " of " + parsed.words.length + " words fit in this grid." +
+      (puzzle.unplacedWordIds.length > 0 ? " Increase difficulty or shorten the list to fit more." : "");
+
+    return { words: parsed.words, puzzle: puzzle };
+  }
+
+  function updatePreview() {
+    const result = currentWordsAndPuzzle();
+    if (!result) {
+      previewFrame.srcdoc = "";
+      return null;
+    }
+    const config = {
+      difficulty: state.difficulty,
+      seed: state.seed,
+      displayMode: state.displayMode,
+      hintButtonEnabled: state.hintButtonEnabled,
+      words: result.words
+    };
+    const html = buildStandaloneWordSearchHtml(config, state.theme);
+    previewFrame.srcdoc = html;
+    seedValueEl.textContent = String(state.seed);
+    return html;
+  }
+
+  function refreshAll() {
+    updatePreview();
+    downloadStatusEl.textContent = "";
+    answerKeyPanel.style.display = "none";
+  }
+
+  wordListInput.addEventListener("input", refreshAll);
+
+  difficultyOptionsEl.addEventListener("change", function(ev) {
+    if (ev.target && ev.target.name === "word-search-difficulty") {
+      state.difficulty = ev.target.value;
+      refreshAll();
+    }
+  });
+
+  displayModeOptionsEl.addEventListener("change", function(ev) {
+    if (ev.target && ev.target.name === "display-mode") {
+      state.displayMode = ev.target.value;
+      refreshAll();
+    }
+  });
+
+  hintButtonEnabledInput.addEventListener("change", function() {
+    state.hintButtonEnabled = hintButtonEnabledInput.checked;
+    refreshAll();
+  });
+  hintButtonToggleRow.addEventListener("click", function(ev) {
+    if (ev.target !== hintButtonEnabledInput) {
+      hintButtonEnabledInput.checked = !hintButtonEnabledInput.checked;
+      hintButtonEnabledInput.dispatchEvent(new Event("change"));
+    }
+  });
+
+  themeToggleBtn.addEventListener("click", function() {
+    state.theme = state.theme === "light" ? "dark" : "light";
+    themeToggleBtn.textContent = state.theme === "light" ? "Light" : "Dark";
+    refreshAll();
+  });
+
+  regenerateBtn.addEventListener("click", function() {
+    state.seed = state.seed + 1;
+    refreshAll();
+  });
+
+  downloadBtn.addEventListener("click", function() {
+    const html = updatePreview();
+    if (!html) { return; }
+    const filename = "word-search-" + state.difficulty + "-" + state.seed + ".html";
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    window.setTimeout(function() {
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    }, 1000);
+
+    downloadStatusEl.textContent = "Downloaded " + filename + ". Open it in a browser to test the learner activity.";
+  });
+
+  // ---- Answer Key (builder page only - built entirely outside the
+  // generated document, so it can never end up in a downloaded file) ----
+
+  const ANSWER_COLORS = ["#e11d48", "#2563eb", "#16a34a", "#d97706", "#7c3aed", "#0891b2", "#db2777", "#65a30d", "#9333ea", "#0d9488"];
+
+  function renderAnswerKey() {
+    const result = currentWordsAndPuzzle();
+    if (!result) { return; }
+
+    const gridSize = result.puzzle.grid.length;
+    const placedIds = new Set(result.puzzle.placements.map((p) => p.wordId));
+
+    // Map each cell to a colour index if it belongs to a placed word
+    const cellColorIndex = {};
+    result.puzzle.placements.forEach((placement, wordIndex) => {
+      placement.coordinates.forEach((c) => {
+        cellColorIndex[c.row + "," + c.column] = wordIndex % ANSWER_COLORS.length;
+      });
+    });
+
+    answerKeyGridEl.style.gridTemplateColumns = "repeat(" + gridSize + ", minmax(1.6rem, 1fr))";
+    answerKeyGridEl.innerHTML = "";
+    result.puzzle.grid.forEach((row, rowIndex) => {
+      row.forEach((unit, colIndex) => {
+        const key = rowIndex + "," + colIndex;
+        const cell = document.createElement("div");
+        cell.className = "ak-cell";
+        cell.textContent = unit;
+        if (cellColorIndex.hasOwnProperty(key)) {
+          cell.style.background = ANSWER_COLORS[cellColorIndex[key]];
+          cell.setAttribute("data-word-index", String(cellColorIndex[key]));
+        }
+        answerKeyGridEl.appendChild(cell);
+      });
+    });
+
+    answerKeyListEl.innerHTML = "";
+    result.words.forEach((word, wordIndex) => {
+      const li = document.createElement("li");
+      const placed = placedIds.has(word.id);
+      const colorIndex = result.puzzle.placements.findIndex((p) => p.wordId === word.id);
+      const swatchColor = colorIndex !== -1 ? ANSWER_COLORS[colorIndex % ANSWER_COLORS.length] : "#555";
+      li.innerHTML = '<span class="swatch" style="background:' + swatchColor + ';"></span><strong>' +
+        word.display + '</strong> - ' + word.meaning + (placed ? "" : " (did not fit this grid)");
+      answerKeyListEl.appendChild(li);
+    });
+
+    const notFitCount = result.puzzle.unplacedWordIds.length;
+    notFitNoteEl.textContent = notFitCount > 0
+      ? notFitCount + " word(s) did not fit this grid and are not shown in the puzzle."
+      : "";
+
+    answerKeyPanel.style.display = "block";
+    if (typeof answerKeyPanel.scrollIntoView === "function") {
+      answerKeyPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  answerKeyBtn.addEventListener("click", renderAnswerKey);
+
+  answerKeyPrintBtn.addEventListener("click", function() {
+    answerKeyPrintArea.innerHTML = "<h1>Word Search - Answer Key</h1>" +
+      "<p><strong>Generated:</strong> " + new Date().toLocaleString() + " - not stored, save/print this copy.</p>" +
+      answerKeyGridEl.outerHTML + answerKeyListEl.outerHTML;
+    window.print();
+  });
+
+  // Initial render
+  refreshAll();
+
+})();
+</script>
+
+</body>
+</html>
