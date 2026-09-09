@@ -117,7 +117,7 @@
   <p><code>thin</code> - a plain English word. It's split letter-by-letter and the word itself is shown as the hint.</p>
   <p><code>&theta; &#618; n = thin</code> - a phoneme sequence (space-separated IPA symbols, click the palette below the box to build one), with the English meaning after the <code>=</code> shown as the hint.</p>
   <p>A line starting with <code>#</code> is a comment/section heading and is ignored (the pre-populated list uses these to group words by phoneme count).</p>
-  <p>Choose the Difficulty (this controls the grid size and which directions words can be hidden in), the Word List Display mode (phoneme spelling or English word - never both while a word is still being searched for), and use Regenerate Puzzle to get a new random layout at the same difficulty and word list. Note: only as many words as fit the grid will be placed - if your list is long, trim it down or the status line under the word list will tell you how many were left out.</p>
+  <p>Choose the Difficulty (this controls the grid size and which directions words can be hidden in), the Word List Display mode - <strong>English</strong> (e.g. "bed"), <strong>Phoneme</strong> (e.g. "b ɛ d"), or <strong>Both</strong> together (e.g. "b ɛ d - bed") - and use Regenerate Puzzle to get a new random layout at the same difficulty and word list. Note: only as many words as fit the grid will be placed - if your list is long, trim it down or the status line under the word list will tell you how many were left out.</p>
   <p>The Live Preview on the right is the exact activity that gets downloaded. Students find words by clicking and dragging from one end of a word to the other (either direction works). They also get a <strong>Hint</strong> button - pressing and holding it briefly reveals the location of one un-found word on the grid.</p>
   <p>The <strong>Show Answer Key</strong> button below is for you only - it is never included in the downloaded file. Save or print it before you close this tab, because it can't be recovered afterwards unless your word list, difficulty and seed are all still exactly the same.</p>
 
@@ -145,7 +145,7 @@
 
       <fieldset style="margin-top: 1.2rem;">
         <legend>Word List Display</legend>
-        <p class="help-text">What the sidebar shows for each word while it's still being searched for. Once found, both are shown together as confirmation.</p>
+        <p class="help-text">What the sidebar shows for each word while it's still being searched for - e.g. "bed" vs "b ɛ d" vs "b ɛ d - bed". Once found, both are always shown together as confirmation.</p>
         <div id="display-mode-options"></div>
       </fieldset>
 
@@ -825,20 +825,26 @@
         const item = document.createElement("li");
         item.className = "word-item";
         item.dataset.found = String(isFound);
-        item.setAttribute("aria-label", word.display + (isFound ? ", found" : ", not found"));
+
+        const primaryLabel = (isFound || data.displayMode !== "english") ? word.display : word.english;
+        const showEnglishSpan = isFound || data.displayMode === "both";
+        const ariaLabel = showEnglishSpan && primaryLabel !== word.english
+          ? primaryLabel + " - " + word.english
+          : primaryLabel;
+        item.setAttribute("aria-label", ariaLabel + (isFound ? ", found" : ", not found"));
 
         const label = document.createElement("strong");
-        label.textContent = isFound
-          ? word.display
-          : (data.displayMode === "english" ? word.english : word.display);
+        label.textContent = primaryLabel;
         item.appendChild(label);
 
-        if (isFound) {
+        if (showEnglishSpan) {
           const hintEl = document.createElement("span");
           hintEl.className = "english";
           hintEl.textContent = word.english;
           item.appendChild(hintEl);
+        }
 
+        if (isFound) {
           const foundLabel = document.createElement("span");
           foundLabel.className = "found-label";
           foundLabel.textContent = "Found";
@@ -1068,10 +1074,11 @@
   const answerKeyPrintArea = document.getElementById("answer-key-print-area");
 
   const DISPLAY_MODE_DETAILS = {
-    phoneme: { label: "Phoneme spelling", description: "Sidebar shows the phoneme sequence to find, e.g. \u201cb \u025b d\u201d." },
-    english: { label: "English word", description: "Sidebar shows only the English word, e.g. \u201cbed\u201d - students must work out the phoneme spelling themselves." }
+    english: { label: "English", description: "Sidebar shows only the English word, e.g. \u201cbed\u201d. Students must work out the phoneme spelling themselves before searching - good for testing whether they can decode a word into its sounds." },
+    phoneme: { label: "Phoneme", description: "Sidebar shows only the phoneme sequence to find, e.g. \u201cb \u025b d\u201d. Matches directly against the grid with no translation needed - good for pure visual scanning practice." },
+    both: { label: "Both", description: "Sidebar shows the phoneme sequence and its English meaning together, e.g. \u201cb \u025b d - bed\u201d. The easiest mode - useful when the goal is vocabulary rather than phonemic decoding." }
   };
-  const DISPLAY_MODE_ORDER = ["phoneme", "english"];
+  const DISPLAY_MODE_ORDER = ["english", "phoneme", "both"];
 
   let state = {
     difficulty: "standard",
