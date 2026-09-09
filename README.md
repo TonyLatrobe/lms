@@ -92,14 +92,14 @@ Features include:
 - Use the built-in phoneme palette to enter IPA symbols
 - Choose **Easy**, **Standard**, or **Challenging** difficulty
 - Change grid size and allowed word directions according to difficulty
-- Optionally show English-word hints
+- Choose whether students see **English words only**, **phoneme spelling only**, or **both together**, while a word is still being searched for
 - Switch the generated activity between light and dark themes
 - Regenerate the puzzle with a new layout
 - Preview the exact learner activity before downloading
 - Download the completed activity as a standalone HTML file
 - Generate a builder-only answer key that can be viewed or printed
 - Use mouse, touch, or keyboard controls to find words
-- Give learners a press-and-hold **Hint** button that temporarily reveals an unfound word
+- Give learners an optional press-and-hold **Hint** button that temporarily reveals an unfound word's location
 
 The difficulty settings use an **8 × 8** grid for Easy, **10 × 10** for Standard, and **12 × 12** for Challenging, with progressively more word directions available.
 
@@ -120,19 +120,46 @@ Features include:
 - Select any word in the supplied list as the target
 - Choose **Easy**, **Standard**, or **Challenging** difficulty
 - Give learners 8 attempts on Easy, 6 on Standard, or 4 on Challenging
-- Optionally show English-word and spelling hints
+- Optionally show English words and spelling hints
 - Use a fixed phoneme keyboard so the layout remains familiar between activities
 - Automatically add extra keys when custom words contain units not on the standard phoneme keyboard
 - Switch between light and dark themes
 - Preview the exact learner activity before downloading
-- Download the completed activity as a standalone HTML file
+- Download the completed activity as a standalone HTML file, named so it doesn't reveal the target word
 - Provide Wordle-style feedback for phonemes in the correct position, in another position, or absent from the target
-- Give learners a press-and-hold **Hint** button that reveals one unresolved letter or phoneme
+- Give learners an optional press-and-hold **Hint** button that reveals one unresolved letter or phoneme
 - Restart the activity without reloading the builder
 
 The phoneme keyboard uses a consistent chart layout, while custom letters or phonemes that are not part of that chart are added beneath it so custom words remain playable.
 
 Difficulty controls the number of guesses rather than the word itself: **Easy** provides 8 attempts, **Standard** 6, and **Challenging** 4.
+
+---
+
+### Multi-Language Word Search Builder
+
+**File:** [`multilangwordsearch.html`](https://github.com/TonyLatrobe/lms/blob/main/multilangwordsearch.html)
+
+A browser-based builder for creating self-contained word-search activities that test mental translation between English and another language. Each entry is written as `english = foreign word` - the English word is the prompt shown to students, and the foreign-language spelling is what's actually hidden in the grid, so students have to translate before they can search.
+
+Features include:
+
+- Works with any language or script - includes ready-made examples for Chinese, Japanese, Korean, French, Spanish, Italian, and German, plus a blank template for writing a custom list
+- Split words letter-by-letter (for scripts like French or German) or character-by-character (for Chinese, Japanese, or Korean), including single-character words
+- Choose **Easy**, **Standard**, or **Challenging** difficulty
+- Change grid size and allowed word directions according to difficulty
+- Choose whether students see the **English prompt only** (the real translation challenge), the **foreign spelling only**, or **both together**
+- Switch the generated activity between light and dark themes
+- Regenerate the puzzle with a new layout
+- Preview the exact learner activity before downloading
+- Download the completed activity as a standalone HTML file
+- Generate a builder-only answer key that can be viewed or printed
+- Use mouse, touch, or keyboard controls to find words
+- Give learners an optional press-and-hold **Hint** button that temporarily reveals an unfound word's location
+
+The difficulty settings use an **8 × 8** grid for Easy, **10 × 10** for Standard, and **12 × 12** for Challenging, with progressively more word directions available.
+
+The downloaded activity is self-contained and does not include the teacher answer key.
 
 ---
 
